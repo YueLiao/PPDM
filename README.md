@@ -104,6 +104,10 @@ We propose a single-stage Human-Object Interaction (HOI) detection method that h
 |dla34_glob_3level|19.75	|12.38|	21.95|	22.13|	14.72|	24.35|37|[model](https://drive.google.com/open?id=1CaaDAchPKyh4TYjQIycWERCYerdetR1x)|
 |hourglass104|**21.92**|	**15.13**|	**23.95**|	**24.25**|	**17.21**|	**26.35**|14|[model](https://drive.google.com/open?id=1nw2msm437JVfxme5fbdpIFsyZ46S-jtI)|
 
+**Our Results on HOI-A dataset**
+
+Coming soon.
+
 ## Citation
 Please consider citing this project in your publications if it helps your research. The following is a BibTeX reference. The BibTeX entry requires the url LaTeX package.
 
