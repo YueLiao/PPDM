@@ -48,8 +48,8 @@ def prefetch_test(opt):
   Logger(opt)
   Detector = detector_factory[opt.task]
   dataset = Dataset(opt, 'test')
-  model_begin = 121
-  model_end = 121
+  model_begin = 100
+  model_end = 140
 
   if opt.test_with_eval:
     map_dcit = {'best_id': 0, 'best_map': 0}
