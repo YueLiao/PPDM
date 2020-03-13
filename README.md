@@ -63,7 +63,7 @@ Contributed by Yue Liao, [Si Liu](http://colalab.org/people), Fei Wang, Yanjie C
     |   |-- test_hico.json
     |   |-- corre_hico.npy
     ~~~
-    The `trainval_hico.json` and `test_hico.json` are the "HOI-A format" annotations generated from [iCAN annotation](https://drive.google.com/open?id=1le4aziSn_96cN3dIPCYyNsBXJVDD8-CZ). `corre_hico.npy` is a binary mask, if the `ith category of object ` and the ` jth category verb` can form an HOI label, the value at location (i, j) of `corre_hico.npy` is set to 1, else 0.
+    The `trainval_hico.json` and `test_hico.json` are the "HOI-A format" annotations generated from [iCAN annotation](https://drive.google.com/open?id=1le4aziSn_96cN3dIPCYyNsBXJVDD8-CZ). `corre_hico.npy` is a binary mask, if the `ith category of object ` and the ` jth category of verb` can form an HOI label, the value at location (i, j) of `corre_hico.npy` is set to 1, else 0.
 
 ### Training
 1. Download the corresponding pre-trained models trained on COCO object detection dataset provided by  [CenterNet](https://github.com/xingyizhou/CenterNet). ([Res18](https://drive.google.com/open?id=1b-_sjq1Pe_dVxt5SeFmoadMfiPTPZqpz), [DLA34](https://drive.google.com/open?id=1pl_-ael8wERdUREEnaIfqOV_VF2bEVRT), [Hourglass104](https://drive.google.com/open?id=1-5bT5ZF8bXriJ-wAvOjJFrBLvZV2-mlV)). Put them into the `models` folder.
