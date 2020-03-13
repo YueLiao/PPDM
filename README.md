@@ -81,6 +81,14 @@ Contributed by Yue Liao, [Si Liu](http://colalab.org/people), Fei Wang, Yanjie C
     cd src
     python test_hoi.py --exp_id hoidet_hico_dla --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
     ```
+    
+    or directly generating the predictions and evalutating based on our provided checkpoint:
+    
+    ```
+    cd src
+    python test_hoi.py --exp_id hoidet_hico_dla --load_model ../exp/hoidet/hoidet_hico_dla/hoidet_hico_dla.pth --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
+    ```
+    
 2. For HICO-DET official evalution.
 
 - Setup HICO-DET evaluation code:
