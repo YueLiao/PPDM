@@ -50,15 +50,16 @@ def prefetch_test(opt):
   dataset = Dataset(opt, 'test')
   model_begin = 100
   model_end = 140
-
+  if opt.load_model != '':
+    model_begin = 0
+    model_end = 0
   if opt.test_with_eval:
     map_dcit = {'best_id': 0, 'best_map': 0}
     best_output = []
   for model_id in range(model_begin, model_end+1):
-
-    model_path = opt.save_dir[:-4] if opt.save_dir.endswith('TEST') else opt.save_dir
-    opt.load_model = os.path.join(model_path, 'model_' + str(model_id) + '.pth')
-    # opt.load_model = os.path.join(model_path, 'model_' + 'last' + '.pth')
+    if opt.load_model == '':
+      model_path = opt.save_dir[:-4] if opt.save_dir.endswith('TEST') else opt.save_dir
+      opt.load_model = os.path.join(model_path, 'model_' + str(model_id) + '.pth')
     detector = Detector(opt)
 
     data_loader = torch.utils.data.DataLoader(
