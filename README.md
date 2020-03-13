@@ -1,15 +1,20 @@
 # PPDM
-Code for our paper "PPDM: Parallel Point Detection and Matching for Real-time Human-Object
+Code for our CVPR 2020 paper "PPDM: Parallel Point Detection and Matching for Real-time Human-Object
 Interaction Detection".
 
 Contributed by Yue Liao, [Si Liu](http://colalab.org/people), Fei Wang, Yanjie Chen, Chen Qian, [Jiashi Feng](https://sites.google.com/site/jshfeng/).
-## Introduction
-We propose a single-stage Human-Object Interaction (HOI) detection method that has outperformed all existing methods on HICO-DET dataset at 37 fps on a single Titan XP GPU. It is the first real-time HOI detection method. Conventional HOI detection methods are composed of two stages, i.e., human-object proposals generation, and proposals classification. Their effectiveness and efficiency are limited by the sequential and separate architecture. In this paper, we propose a Parallel Point Detection and Matching (PPDM) HOI detection framework. In PPDM, an HOI is defined as a point triplet < human point, interaction point, object point>. Human and object points are the center of the detection boxes, and the interaction point is the midpoint of the human and object points. PPDM contains two parallel branches, namely point detection branch and point matching branch. The point detection branch predicts three points. Simultaneously, the point matching branch predicts two displacements from the interaction point to its corresponding human and object points. The human point and the object point originated from the same interaction point are considered as matched pairs. In our novel parallel architecture, the interaction points implicitly provide context and regularization for human and object detection. The isolated detection boxes are unlikely to form meaning HOI triplets are suppressed, which increases the precision of HOI detection.
-## Architecture
+
 ![](paper_images/framework.png)
 
-## News
-**[2020.03.11]** We have released the training code and test code on HICO-Det dataset now, and the newly HOI-A dataset and corresponding code will be released soon.
+## Checklist
+- [x] Training code and test code on HICO-Det dataset (2020-03-11)
+- [x] Training code and test code on HOI-A dataset (2020-03-11)
+- [ ] HOI-A dataset
+- [ ] Image demo
+- [ ] Video demo
+- [ ] PPDM for video HOI detection
+- [ ] PPDM for human-centric relationship detection
+
 
 ## Getting Started
 ### Installation
