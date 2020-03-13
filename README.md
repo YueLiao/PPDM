@@ -7,13 +7,13 @@ Contributed by Yue Liao, [Si Liu](http://colalab.org/people), Fei Wang, Yanjie C
 ![](paper_images/framework.png)
 
 ## Checklist
-- [x] Training code and test code on HICO-Det dataset (2020-03-11)
-- [x] Training code and test code on HOI-A dataset (2020-03-11)
-- [ ] HOI-A dataset
-- [ ] Image demo
-- [ ] Video demo
-- [ ] PPDM for video HOI detection
-- [ ] PPDM for human-centric relationship detection
+- [x] Training code and test code on HICO-Det dataset. (2020-03-11)
+- [x] Training code and test code on HOI-A dataset. (2020-03-11)
+- [ ] HOI-A dataset.
+- [ ] Image demo.
+- [ ] Video demo.
+- [ ] PPDM for video HOI detection.
+- [ ] PPDM for human-centric relationship segmentation.
 
 
 ## Getting Started
