@@ -1,6 +1,6 @@
 # PPDM
-Code for our CVPR 2020 paper "PPDM: Parallel Point Detection and Matching for Real-time Human-Object
-Interaction Detection".
+Code for our CVPR 2020 paper "[PPDM: Parallel Point Detection and Matching for Real-time Human-Object
+Interaction Detection](https://arxiv.org/pdf/1912.12898)".
 
 Contributed by Yue Liao, [Si Liu](http://colalab.org/people), Fei Wang, Yanjie Chen, Chen Qian, [Jiashi Feng](https://sites.google.com/site/jshfeng/).
 
