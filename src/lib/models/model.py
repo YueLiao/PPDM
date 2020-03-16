@@ -10,13 +10,15 @@ from .networks.large_hourglass import get_large_hourglass_net
 from .networks.pose_dla_dcn_glob import get_pose_net_glob
 from .networks.pose_dla_dcn_3level import get_pose_net_3level
 from .networks.pose_dla_dcn_glob_3level import get_pose_net_glob_3level
+from .networks.resnet_dcn import get_pose_net as get_pose_net_dcn
 
 _model_factory = {
   'dla': get_dla_dcn,
   'hourglass': get_large_hourglass_net,
   'dlaglob': get_pose_net_glob,
   'dla3level': get_pose_net_3level,
-  'dla3levelglob': get_pose_net_glob_3level
+  'dla3levelglob': get_pose_net_glob_3level,
+  'resdcn': get_pose_net_dcn
 }
 
 def create_model(arch, heads, head_conv):
