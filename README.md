@@ -2,7 +2,7 @@
 Code for our CVPR 2020 paper "[PPDM: Parallel Point Detection and Matching for Real-time Human-Object
 Interaction Detection](https://arxiv.org/pdf/1912.12898)".
 
-Contributed by Yue Liao, [Si Liu](http://colalab.org/people), Fei Wang, Yanjie Chen, Chen Qian, [Jiashi Feng](https://sites.google.com/site/jshfeng/).
+Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people), Fei Wang, Yanjie Chen, Chen Qian, [Jiashi Feng](https://sites.google.com/site/jshfeng/).
 
 ![](paper_images/framework.png)
 
@@ -72,14 +72,14 @@ Contributed by Yue Liao, [Si Liu](http://colalab.org/people), Fei Wang, Yanjie C
 
     ~~~
     cd src
-    python main.py  --batch_size 112 --master_batch 7 --lr 4.5e-4 --gpus 0,1,2,3,4,5,6,7  --num_workers 16  --load_model ../models/ctdet_coco_dla_2x.pth --image_dir images/train2015 --dataset hico --exp_id hoidet_hico_dla
+    python main.py  hoidet --batch_size 112 --master_batch 7 --lr 4.5e-4 --gpus 0,1,2,3,4,5,6,7  --num_workers 16  --load_model ../models/ctdet_coco_dla_2x.pth --image_dir images/train2015 --dataset hico --exp_id hoidet_hico_dla
     ~~~
 ### Test
 1. Evalution by our rewritten script and select the best checkpoint. The scripts for evalution are put into `experiments` folder.  An example evalution on HICO-DET dataset as follow:
 
     ```
     cd src
-    python test_hoi.py --exp_id hoidet_hico_dla --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
+    python test_hoi.py hoidet --exp_id hoidet_hico_dla --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
     ```
     
     or directly generating the predictions and evalutating based on our provided checkpoint:
