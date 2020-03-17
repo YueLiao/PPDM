@@ -86,7 +86,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     
     ```
     cd src
-    python test_hoi.py --exp_id hoidet_hico_dla --load_model ../exp/hoidet/hoidet_hico_dla/hoidet_hico_dla.pth --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
+    python test_hoi.py hoidet --exp_id hoidet_hico_dla --load_model ../exp/hoidet/hoidet_hico_dla/hoidet_hico_dla.pth --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
     ```
     
 2. For HICO-DET official evalution.
