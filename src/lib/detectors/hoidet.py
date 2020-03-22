@@ -30,7 +30,6 @@ class HoidetDetector(BaseDetector):
         with torch.no_grad():
             output = self.model(images)[-1]
             hm_obj = output['hm'].sigmoid_()
-            hm_human = output['hm_human'].sigmoid_()
             hm_rel = output['hm_rel'].sigmoid_()
             wh = output['wh']
             reg = output['reg'] if self.opt.reg_offset else None
@@ -39,7 +38,7 @@ class HoidetDetector(BaseDetector):
             torch.cuda.synchronize()
             forward_time = time.time()
 
-            dets_obj, dets_sub, rel = hoidet_decode(hm_human, hm_obj, wh, hm_rel, sub_offset, obj_offset, reg=reg,
+            dets_obj, dets_sub, rel = hoidet_decode(hm_obj, wh, hm_rel, sub_offset, obj_offset, reg=reg,
                                                     corremat=self.corre_mat, is_sub_verb=self.opt.use_verb_sub)
 
         if return_time:

@@ -155,7 +155,6 @@ class HICO(Dataset):
         trans_output = get_affine_transform(c, s, 0, [output_w, output_h])
 
         hm = np.zeros((num_classes, output_h, output_w), dtype=np.float32)
-        hm_human = np.zeros((1, output_h, output_w), dtype = np.float32)
         hm_rel = np.zeros((self.num_classes_verb, output_h, output_w), dtype = np.float32)
         wh = np.zeros((self.max_objs, 2), dtype=np.float32)
         reg = np.zeros((self.max_objs, 2), dtype=np.float32)
@@ -201,10 +200,7 @@ class HICO(Dataset):
                 ind[k] = ct_int[1] * output_w + ct_int[0]
                 reg[k] = ct - ct_int
                 reg_mask[k] = 1
-                if cls_id == 0:
-                    draw_gaussian(hm_human[cls_id], ct_int, radius)
-                else:
-                    draw_gaussian(hm[cls_id], ct_int, radius)
+                draw_gaussian(hm[cls_id], ct_int, radius)
 
 
                 gt_det.append([ct[0] - w / 2, ct[1] - h / 2,
@@ -236,7 +232,7 @@ class HICO(Dataset):
             rel_ind[k] = rel_ct_int[1] * output_w + rel_ct_int[0]
 
 
-        ret = {'input': inp, 'hm': hm, 'hm_human': hm_human, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh,
+        ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh,
                'hm_rel': hm_rel, 'sub_offset': sub_offset, 'obj_offset': obj_offset, 'offset_mask': offset_mask, 'rel_ind': rel_ind}
         if self.opt.reg_offset:
             ret.update({'reg': reg})

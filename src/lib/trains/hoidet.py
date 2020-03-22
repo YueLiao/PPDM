@@ -23,16 +23,14 @@ class HoidetLoss(torch.nn.Module):
 
     def forward(self, outputs, batch):
         opt = self.opt
-        hm_loss, wh_loss, off_loss, hm_human_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0, 0
+        hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
         for s in range(opt.num_stacks):
             output = outputs[s]
             if not opt.mse_loss:
                 output['hm'] = _sigmoid(output['hm'])
-                output['hm_human'] = _sigmoid(output['hm_human'])
                 output['hm_rel'] = _sigmoid(output['hm_rel'])
             hm_loss += self.crit(output['hm'], batch['hm']) / opt.num_stacks
             hm_rel_loss += self.crit(output['hm_rel'], batch['hm_rel']) / opt.num_stacks
-            hm_human_loss += self.crit(output['hm_human'], batch['hm_human']) / opt.num_stacks
 
             if opt.wh_weight > 0:
                 if opt.dense_wh:
@@ -61,12 +59,11 @@ class HoidetLoss(torch.nn.Module):
                 off_loss += self.crit_reg(output['reg'], batch['reg_mask'],
                                           batch['ind'], batch['reg']) / opt.num_stacks
 
-        loss = opt.hm_weight * (hm_loss + hm_rel_loss + hm_human_loss) + opt.wh_weight * (
+        loss = opt.hm_weight * (hm_loss + hm_rel_loss) + opt.wh_weight * (
                     wh_loss + sub_offset_loss + obj_offset_loss) + \
                opt.off_weight * off_loss
         loss_stats = {'loss': loss, 'hm_loss': hm_loss,
                       'wh_loss': wh_loss, 'off_loss': off_loss, 'hm_rel_loss': hm_rel_loss,
-                      'hm_human_loss': hm_human_loss,
                       'sub_offset_loss': sub_offset_loss, 'obj_offset_loss': obj_offset_loss}
         return loss, loss_stats
 
@@ -76,7 +73,7 @@ class HoidetTrainer(BaseTrainer):
         super(HoidetTrainer, self).__init__(opt, model, optimizer=optimizer)
 
     def _get_losses(self, opt):
-        loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss', 'hm_human_loss', 'sub_offset_loss',
+        loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss', 'sub_offset_loss',
                        'obj_offset_loss']
         loss = HoidetLoss(opt)
         return loss_states, loss

@@ -40,11 +40,11 @@ def match_rel_box(rel, bbox, K_rel, K_bbox):
     dis_mat = abs(rel - bbox)
     return dis_mat
 
-def hoidet_decode(heat_human, heat_obj, wh, heat_rel, offset_sub, offset_obj, reg=None, corremat = None, K_obj=100, K_human = 100, K_rel = 100, is_sub_verb = 0):
+def hoidet_decode( heat_obj, wh, heat_rel, offset_sub, offset_obj, reg=None, corremat = None, K_obj=100, K_human = 100, K_rel = 100, is_sub_verb = 0):
     batch, cat_obj, height, width = heat_obj.size()
     heat_obj = _nms(heat_obj)
-    heat_human = _nms(heat_human)
     heat_rel = _nms(heat_rel)
+    heat_human = heat_obj[:,0,:,:].view(batch,1, height, width)
 
     scores_obj, inds_obj, clses_obj, ys_obj, xs_obj = _topk(heat_obj, K=K_obj)
     scores_obj = scores_obj.view(batch, K_obj, 1)
