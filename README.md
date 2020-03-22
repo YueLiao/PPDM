@@ -82,11 +82,11 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     python test_hoi.py hoidet --exp_id hoidet_hico_dla --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
     ```
     
-    or directly generating the predictions and evalutating based on our provided checkpoint:
+    or directly generating the predictions and evalutating for a certern checkpoint:
     
     ```
     cd src
-    python test_hoi.py hoidet --exp_id hoidet_hico_dla --load_model ../exp/hoidet/hoidet_hico_dla/hoidet_hico_dla.pth --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
+    python test_hoi.py hoidet --exp_id hoidet_hico_dla --load_model ../exp/hoidet/hoidet_hico_dla/model_140.pth --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
     ```
     
 2. For HICO-DET official evalution.
@@ -106,16 +106,19 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     matlab -r "Generate_detection.m; quite"
     ~~~
 ## Results on HICO-DET and HOI-A
+We donot carefully tune the training hyper-parameters just following the setting in [Centernet](https://github.com/xingyizhou/CenterNet), e.g., lr, loss_weight, max_epoch, which may not be the best choice for our PPDM. It causes that the last checkpoint may not be the best one. We report two results and provide the corresponding two models for each setting, i.e. last checkpoint (the former, reported in paper) and best checkpoint.   
+
 **Our Results on HICO-DET dataset**
+
 
 |Model| Full (def)| Rare (def)| None-Rare (def)|Full (ko)| Rare (ko)| None-Rare (ko)|FPS|Download|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|res18| 14.94|	8.83|	16.76|	16.98	|10.42|18.94|**89**|[model](https://drive.google.com/file/d/1L2Ns78F0HD5DRMx68KMyZ1L97ulq5Cwn/view?usp=sharing)|
-|dla34| 19.34	|12.21|	21.47	|21.53|	14.14	|23.73|38|[model](https://drive.google.com/open?id=1pNuadiDbHHyAB4kC_II4RKlEOBgKScd6)|
-|dla34_3level|19.33	|11.7|	21.61|	21.73|	14.05|	24.03|37|[model](https://drive.google.com/open?id=1wEZ1wgP9vUfm23lr1_t4V7IufCIi3SoZ)|
-|dla34_glob|19.42	|13.12|	21.3|	21.76|	15.13|	23.74|38|[model](https://drive.google.com/open?id=15DjWsLR5EA7KejFq6XS4jTkVtJGgRU3M)|
-|dla34_glob_3level|19.75	|12.38|	21.95|	22.13|	14.72|	24.35|37|[model](https://drive.google.com/open?id=1CaaDAchPKyh4TYjQIycWERCYerdetR1x)|
-|hourglass104|**21.92**|	**15.13**|	**23.95**|	**24.25**|	**17.21**|	**26.35**|14|[model](https://drive.google.com/open?id=1nw2msm437JVfxme5fbdpIFsyZ46S-jtI)|
+|res18| 14.90|	7.61|	17.08|	17.31	|9.79|19.55|**89**|[model](https://drive.google.com/open?id=1o4Z8Ts275hu4j4bXpQf1ftgdWR2ng7LN)|
+|dla34| 19.94/20.06	|13.01/13.32|	22.01/22.08	|22.63/22.73|	15.93/16.29	|24.63/24.65|38|[model](https://drive.google.com/drive/folders/1K0H05nSUOCq939tmvBRJjskdPSLy1U-U?usp=sharing)|
+|dla34_3level|20.00/20.15|12.56/13.48|22.22/22.15	|	22.65/22.91|15.02/16.18|	24.93/24.91|37|[model](https://drive.google.com/open?id=1NaFJLe-c_m1iFv-STHYtpROvXEJhp6_t)|
+|dla34_glob|19.85/19.85	|12.99/12.99|	21.90/21.90|	22.49/22.49|	15.86/15.86|	24.47/24.47|38|[model](https://drive.google.com/open?id=1v98JF5_191SfR_a7WspBeynjvfL3h9X1)|
+|dla34_glob_3level|20.29/20.41	|13.06/13.34|	22.45/22.52|	23.09/23.16|	16.14/16.24|	25.17/25.23|37|[model](https://drive.google.com/open?id=1cThMBlwe19HAQ_wxVlb881VT8S60AAlA)|
+|hourglass104|**21.73/21.94**|	**13.78/13.97**|	**24.10/24.32**|	**24.58/24.81**|	**16.65/17.09**|	**26.84/27.12**|14|[model](https://drive.google.com/open?id=1rRgblZUa2Z85V_b0H678xR1HwZGEdl0B)|
 
 **Our Results on HOI-A dataset**
 
@@ -125,11 +128,11 @@ Coming soon.
 Please consider citing this project in your publications if it helps your research. The following is a BibTeX reference. The BibTeX entry requires the url LaTeX package.
 
 ~~~
-@article{liao2019ppdm,
+@inproceedings{liao2019ppdm,
   title={PPDM: Parallel Point Detection and Matching for Real-time Human-Object Interaction Detection},
   author={Liao, Yue and Liu, Si and Wang, Fei and Chen, Yanjie and Qian, Chen and Feng, Jiashi},
-  journal={arXiv preprint arXiv:1912.12898},
-  year={2019}
+  journal={CVPR},
+  year={2020}
 }
 ~~~
 ## License
