@@ -256,7 +256,6 @@ class opts(object):
             assert opt.dataset in ['hico', 'vcoco', 'hoia']
             opt.heads = {'hm': opt.num_classes,
                          'wh': 2 if not opt.cat_spec_wh else 2 * opt.num_classes,
-                         'hm_human': 1,
                          'hm_rel': opt.num_classes_verb,
                          'sub_offset': 2,
                          'obj_offset': 2}
