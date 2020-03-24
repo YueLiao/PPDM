@@ -90,8 +90,8 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     ```
     
 2. For HICO-DET official evalution.
-
-The mAPs evaluated by our provided scripts are a bit lower (about 0.5% mAP)  than the official evaluation script.
+    
+    The mAPs evaluated by our provided scripts are a bit lower (about 0.5% mAP)  than the official evaluation script.
 
 - Setup HICO-DET evaluation code:
 
