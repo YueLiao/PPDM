@@ -57,8 +57,8 @@ def prefetch_test(opt):
     map_dcit = {'best_id': 0, 'best_map': 0}
     best_output = []
   for model_id in range(model_begin, model_end+1):
-    if opt.load_model == '' or model_id > model_begin:
-      model_path = opt.save_dir[:-4] if opt.save_dir.endswith('TEST') else opt.save_dir
+    model_path = opt.save_dir[:-4] if opt.save_dir.endswith('TEST') else opt.save_dir
+    if opt.load_model == '' or model_id > model_begin: 
       opt.load_model = os.path.join(model_path, 'model_' + str(model_id) + '.pth')
     detector = Detector(opt)
 
