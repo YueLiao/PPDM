@@ -18,8 +18,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 
 ## Getting Started
 ### Installation
-
-    The code was tested on Ubuntu 16.04, with Python 3.6 and PyTorch v0.4.1.
+   The code was tested on Ubuntu 16.04, with Python 3.6 and PyTorch v0.4.1.
 
 1. Clone this repository.
 
