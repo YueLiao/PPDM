@@ -40,7 +40,7 @@ class VCOCO(Dataset):
             for i, vcoco in enumerate(self.hoi_annotations):
                 flag_bad = 0
                 for hoi in vcoco['hoi_annotation']:
-                    if hoi['subject_id'] >= len(hoi['annotations']) or hoi['object_id'] >= len(hoi['annotations']):
+                    if hoi['subject_id'] >= len(vcoco['annotations']) or hoi['object_id'] >= len(vcoco['annotations']):
                         flag_bad = 1
                         break
                 if flag_bad == 0:
