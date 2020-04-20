@@ -36,10 +36,10 @@ class HOIA(Dataset):
             self.multiscale_mode = multiscale_mode
             self.flip = True
             self.ids = []
-            for i, hico in enumerate(self.hoi_annotations):
+            for i, hoia in enumerate(self.hoi_annotations):
                 flag_bad = 0
-                for hoi in hico['hoi_annotation']:
-                    if hoi['subject_id'] >= len(hico['annotations']) or hoi['object_id'] >= len(hico['annotations']):
+                for hoi in hoia['hoi_annotation']:
+                    if hoi['subject_id'] >= len(hoia['annotations']) or hoi['object_id'] >= len(hoia['annotations']):
                         flag_bad = 1
                         break
                 if flag_bad == 0:
