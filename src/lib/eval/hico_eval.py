@@ -53,6 +53,8 @@ class hico():
         self.num_class = len(self.verb_name_dict)
     def evalution(self, predict_annot):
         for pred_i in predict_annot:
+            if pred_i['file_name'] not in self.file_name:
+                continue
             gt_i = self.annotations[self.file_name.index(pred_i['file_name'])]
             gt_bbox = gt_i['annotations']
             if len(gt_bbox)!=0:
@@ -142,7 +144,11 @@ class hico():
                             if min_ov_gt>max_ov:
                                 max_ov=min_ov_gt
                                 max_gt_id=gt_id
+                if pred_hoi_i['category_id'] not in list(self.fp.keys()):
+                    continue
                 triplet = [pred_bbox[pred_hoi_i['subject_id']]['category_id'], pred_bbox[pred_hoi_i['object_id']]['category_id'], pred_hoi_i['category_id']]
+                if triplet not in self.verb_name_dict:
+                    continue
                 verb_id = self.verb_name_dict.index(triplet)
                 if is_match == 1 and vis_tag[max_gt_id] == 0:
                     self.fp[verb_id].append(0)
