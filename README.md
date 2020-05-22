@@ -135,7 +135,7 @@ Please consider citing this project in your publications if it helps your resear
 @inproceedings{liao2019ppdm,
   title={PPDM: Parallel Point Detection and Matching for Real-time Human-Object Interaction Detection},
   author={Liao, Yue and Liu, Si and Wang, Fei and Chen, Yanjie and Qian, Chen and Feng, Jiashi},
-  journal={CVPR},
+  booktitle={CVPR},
   year={2020}
 }
 ~~~
