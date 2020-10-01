@@ -26,7 +26,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     git clone https://github.com/YueLiao/PPDM.git $PPDM_ROOT
     ~~~
 2. Install pytorch0.4.1.
-
+#easiest way to install pytorch0.4.1
     ~~~
     conda install pytorch=0.4.1 torchvision -c pytorch
     ~~~
