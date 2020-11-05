@@ -16,6 +16,17 @@ import torch.nn as nn
 
 class convolution(nn.Module):
     def __init__(self, k, inp_dim, out_dim, stride=1, with_bn=True):
+        """
+        Initialize k layer.
+
+        Args:
+            self: (todo): write your description
+            k: (int): write your description
+            inp_dim: (int): write your description
+            out_dim: (int): write your description
+            stride: (int): write your description
+            with_bn: (str): write your description
+        """
         super(convolution, self).__init__()
 
         pad = (k - 1) // 2
@@ -24,6 +35,13 @@ class convolution(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
+        """
+        Perform algorithm.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         conv = self.conv(x)
         bn   = self.bn(conv)
         relu = self.relu(bn)
@@ -31,6 +49,15 @@ class convolution(nn.Module):
 
 class fully_connected(nn.Module):
     def __init__(self, inp_dim, out_dim, with_bn=True):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            inp_dim: (int): write your description
+            out_dim: (int): write your description
+            with_bn: (str): write your description
+        """
         super(fully_connected, self).__init__()
         self.with_bn = with_bn
 
@@ -40,6 +67,13 @@ class fully_connected(nn.Module):
         self.relu   = nn.ReLU(inplace=True)
 
     def forward(self, x):
+        """
+        Forward function.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         linear = self.linear(x)
         bn     = self.bn(linear) if self.with_bn else linear
         relu   = self.relu(bn)
@@ -47,6 +81,17 @@ class fully_connected(nn.Module):
 
 class residual(nn.Module):
     def __init__(self, k, inp_dim, out_dim, stride=1, with_bn=True):
+        """
+        Initialize k layer.
+
+        Args:
+            self: (todo): write your description
+            k: (int): write your description
+            inp_dim: (int): write your description
+            out_dim: (int): write your description
+            stride: (int): write your description
+            with_bn: (str): write your description
+        """
         super(residual, self).__init__()
 
         self.conv1 = nn.Conv2d(inp_dim, out_dim, (3, 3), padding=(1, 1), stride=(stride, stride), bias=False)
@@ -63,6 +108,13 @@ class residual(nn.Module):
         self.relu  = nn.ReLU(inplace=True)
 
     def forward(self, x):
+        """
+        Perform forward forward algorithm.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         conv1 = self.conv1(x)
         bn1   = self.bn1(conv1)
         relu1 = self.relu1(bn1)
@@ -74,12 +126,34 @@ class residual(nn.Module):
         return self.relu(bn2 + skip)
 
 def make_layer(k, inp_dim, out_dim, modules, layer=convolution, **kwargs):
+    """
+    Make a layer.
+
+    Args:
+        k: (todo): write your description
+        inp_dim: (int): write your description
+        out_dim: (int): write your description
+        modules: (list): write your description
+        layer: (todo): write your description
+        convolution: (bool): write your description
+    """
     layers = [layer(k, inp_dim, out_dim, **kwargs)]
     for _ in range(1, modules):
         layers.append(layer(k, out_dim, out_dim, **kwargs))
     return nn.Sequential(*layers)
 
 def make_layer_revr(k, inp_dim, out_dim, modules, layer=convolution, **kwargs):
+    """
+    Make a layer layer layers.
+
+    Args:
+        k: (todo): write your description
+        inp_dim: (int): write your description
+        out_dim: (int): write your description
+        modules: (list): write your description
+        layer: (todo): write your description
+        convolution: (bool): write your description
+    """
     layers = []
     for _ in range(modules - 1):
         layers.append(layer(k, inp_dim, inp_dim, **kwargs))
@@ -88,30 +162,77 @@ def make_layer_revr(k, inp_dim, out_dim, modules, layer=convolution, **kwargs):
 
 class MergeUp(nn.Module):
     def forward(self, up1, up2):
+        """
+        Perform of two - up to1 and up.
+
+        Args:
+            self: (todo): write your description
+            up1: (todo): write your description
+            up2: (todo): write your description
+        """
         return up1 + up2
 
 def make_merge_layer(dim):
+    """
+    Make a merge layer.
+
+    Args:
+        dim: (int): write your description
+    """
     return MergeUp()
 
 # def make_pool_layer(dim):
 #     return nn.MaxPool2d(kernel_size=2, stride=2)
 
 def make_pool_layer(dim):
+    """
+    Make a layer layer.
+
+    Args:
+        dim: (int): write your description
+    """
     return nn.Sequential()
 
 def make_unpool_layer(dim):
+    """
+    Make a layer layer. layer.
+
+    Args:
+        dim: (int): write your description
+    """
     return nn.Upsample(scale_factor=2)
 
 def make_kp_layer(cnv_dim, curr_dim, out_dim):
+    """
+    Make a convolution layer.
+
+    Args:
+        cnv_dim: (int): write your description
+        curr_dim: (int): write your description
+        out_dim: (int): write your description
+    """
     return nn.Sequential(
         convolution(3, cnv_dim, curr_dim, with_bn=False),
         nn.Conv2d(curr_dim, out_dim, (1, 1))
     )
 
 def make_inter_layer(dim):
+    """
+    Make a layer.
+
+    Args:
+        dim: (int): write your description
+    """
     return residual(3, dim, dim)
 
 def make_cnv_layer(inp_dim, out_dim):
+    """
+    Make a convolution layer.
+
+    Args:
+        inp_dim: (int): write your description
+        out_dim: (int): write your description
+    """
     return convolution(3, inp_dim, out_dim)
 
 class kp_module(nn.Module):
@@ -122,6 +243,31 @@ class kp_module(nn.Module):
         make_pool_layer=make_pool_layer, make_unpool_layer=make_unpool_layer,
         make_merge_layer=make_merge_layer, **kwargs
     ):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            n: (int): write your description
+            dims: (str): write your description
+            modules: (str): write your description
+            layer: (todo): write your description
+            residual: (todo): write your description
+            make_up_layer: (todo): write your description
+            make_layer: (todo): write your description
+            make_low_layer: (todo): write your description
+            make_layer: (todo): write your description
+            make_hg_layer: (todo): write your description
+            make_layer: (todo): write your description
+            make_hg_layer_revr: (todo): write your description
+            make_layer_revr: (todo): write your description
+            make_pool_layer: (todo): write your description
+            make_pool_layer: (todo): write your description
+            make_unpool_layer: (todo): write your description
+            make_unpool_layer: (todo): write your description
+            make_merge_layer: (todo): write your description
+            make_merge_layer: (todo): write your description
+        """
         super(kp_module, self).__init__()
 
         self.n   = n
@@ -165,6 +311,13 @@ class kp_module(nn.Module):
         self.merge = make_merge_layer(curr_dim)
 
     def forward(self, x):
+        """
+        Returns the forward of two ). )
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         up1  = self.up1(x)
         max1 = self.max1(x)
         low1 = self.low1(max1)
@@ -185,6 +338,47 @@ class exkp(nn.Module):
         make_merge_layer=make_merge_layer, make_inter_layer=make_inter_layer, 
         kp_layer=residual
     ):
+        """
+        Initialize layer.
+
+        Args:
+            self: (todo): write your description
+            n: (int): write your description
+            nstack: (todo): write your description
+            dims: (str): write your description
+            modules: (str): write your description
+            heads: (todo): write your description
+            pre: (todo): write your description
+            cnv_dim: (int): write your description
+            make_tl_layer: (todo): write your description
+            make_br_layer: (todo): write your description
+            make_cnv_layer: (todo): write your description
+            make_cnv_layer: (todo): write your description
+            make_heat_layer: (todo): write your description
+            make_kp_layer: (todo): write your description
+            make_tag_layer: (todo): write your description
+            make_kp_layer: (todo): write your description
+            make_regr_layer: (todo): write your description
+            make_kp_layer: (todo): write your description
+            make_up_layer: (todo): write your description
+            make_layer: (todo): write your description
+            make_low_layer: (todo): write your description
+            make_layer: (todo): write your description
+            make_hg_layer: (todo): write your description
+            make_layer: (todo): write your description
+            make_hg_layer_revr: (todo): write your description
+            make_layer_revr: (todo): write your description
+            make_pool_layer: (todo): write your description
+            make_pool_layer: (todo): write your description
+            make_unpool_layer: (todo): write your description
+            make_unpool_layer: (todo): write your description
+            make_merge_layer: (todo): write your description
+            make_merge_layer: (todo): write your description
+            make_inter_layer: (int): write your description
+            make_inter_layer: (int): write your description
+            kp_layer: (todo): write your description
+            residual: (todo): write your description
+        """
         super(exkp, self).__init__()
 
         self.nstack    = nstack
@@ -251,6 +445,13 @@ class exkp(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, image):
+        """
+        Perform forward
+
+        Args:
+            self: (todo): write your description
+            image: (array): write your description
+        """
         # print('image shape', image.shape)
         inter = self.pre(image)
         outs  = []
@@ -275,6 +476,17 @@ class exkp(nn.Module):
 
 
 def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
+    """
+    Make a convolution layer.
+
+    Args:
+        kernel: (str): write your description
+        dim0: (int): write your description
+        dim1: (int): write your description
+        mod: (todo): write your description
+        layer: (todo): write your description
+        convolution: (bool): write your description
+    """
     layers  = [layer(kernel, dim0, dim1, stride=2)]
     layers += [layer(kernel, dim1, dim1) for _ in range(mod - 1)]
     return nn.Sequential(*layers)
@@ -282,6 +494,14 @@ def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
 
 class HourglassNet(exkp):
     def __init__(self, heads, num_stacks=2):
+        """
+        Initialize layer.
+
+        Args:
+            self: (todo): write your description
+            heads: (todo): write your description
+            num_stacks: (int): write your description
+        """
         n       = 5
         dims    = [256, 256, 384, 384, 384, 512]
         modules = [2, 2, 2, 2, 2, 4]
@@ -296,5 +516,13 @@ class HourglassNet(exkp):
         )
 
 def get_large_hourglass_net(num_layers, heads, head_conv):
+    """
+    Get a netglass model.
+
+    Args:
+        num_layers: (int): write your description
+        heads: (todo): write your description
+        head_conv: (todo): write your description
+    """
   model = HourglassNet(heads, 2)
   return model

@@ -7,6 +7,15 @@ import numba
 
 @numba.jit(nopython=True, nogil=True)
 def gen_oracle_map(feat, ind, w, h):
+    """
+    Gen_oracle map.
+
+    Args:
+        feat: (todo): write your description
+        ind: (todo): write your description
+        w: (todo): write your description
+        h: (todo): write your description
+    """
   # feat: B x maxN x featDim
   # ind: B x maxN
   batch_size = feat.shape[0]

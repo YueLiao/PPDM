@@ -14,6 +14,13 @@ import os
 
 class HoidetDetector(BaseDetector):
     def __init__(self, opt):
+        """
+        Initialize the dataset
+
+        Args:
+            self: (todo): write your description
+            opt: (dict): write your description
+        """
         super(HoidetDetector, self).__init__(opt)
         self.opt = opt
         if 'hico' in self.opt.dataset:
@@ -26,6 +33,14 @@ class HoidetDetector(BaseDetector):
         self.triplet_labels = list(zip(self.triplet_labels[0], self.triplet_labels[1]))
         self.corre_mat = torch.tensor(self.corre_mat).float().cuda()
     def process(self, images, return_time=False):
+        """
+        Process a tuple of the model
+
+        Args:
+            self: (todo): write your description
+            images: (todo): write your description
+            return_time: (bool): write your description
+        """
 
         with torch.no_grad():
             output = self.model(images)[-1]
@@ -47,6 +62,15 @@ class HoidetDetector(BaseDetector):
             return output, dets_obj, dets_sub, rel, images.size()[2], images.size()[3]
 
     def post_process(self, dets, meta, scale=1):
+        """
+        Post process.
+
+        Args:
+            self: (todo): write your description
+            dets: (todo): write your description
+            meta: (todo): write your description
+            scale: (float): write your description
+        """
         dets = dets.detach().cpu().numpy()
         dets = dets.reshape(1, -1, dets.shape[2])
         dets = ctdet_post_process(
@@ -55,6 +79,17 @@ class HoidetDetector(BaseDetector):
         return dets
 
     def bbox_clip(self, cx, cy, width, height, boundary):
+        """
+        Return the bounding box for a bounding box.
+
+        Args:
+            self: (todo): write your description
+            cx: (todo): write your description
+            cy: (todo): write your description
+            width: (int): write your description
+            height: (int): write your description
+            boundary: (str): write your description
+        """
         cx = max(0, min(cx, boundary[1]))
         cy = max(0, min(cy, boundary[0]))
         width = max(10, min(width, boundary[1]))
@@ -62,6 +97,16 @@ class HoidetDetector(BaseDetector):
         return cx, cy, width, height
 
     def get_hoi_output(self, det_sub, det_obj, rel, c):
+        """
+        This function tocate_ho.
+
+        Args:
+            self: (todo): write your description
+            det_sub: (todo): write your description
+            det_obj: (todo): write your description
+            rel: (str): write your description
+            c: (todo): write your description
+        """
         output = {'predictions': [], 'hoi_prediction': []}
         obj_match_dict = {}
         sub_match_dict = {}

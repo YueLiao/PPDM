@@ -3,6 +3,13 @@ import numpy as np
 
 class hico():
     def __init__(self, annotation_file):
+        """
+        Initialize an annotation file.
+
+        Args:
+            self: (todo): write your description
+            annotation_file: (str): write your description
+        """
         self.annotations = json.load(open(annotation_file, 'r'))
         self.train_annotations = json.load(open(annotation_file.replace('test_hico.json', 'trainval_hico.json'),'r'))
         self.overlap_iou = 0.5
@@ -52,6 +59,13 @@ class hico():
 
         self.num_class = len(self.verb_name_dict)
     def evalution(self, predict_annot):
+        """
+        Evaluate the bbox file.
+
+        Args:
+            self: (todo): write your description
+            predict_annot: (todo): write your description
+        """
         for pred_i in predict_annot:
             if pred_i['file_name'] not in self.file_name:
                 continue
@@ -76,6 +90,12 @@ class hico():
         return map
 
     def compute_map(self):
+        """
+        Compute the map of each sample and b.
+
+        Args:
+            self: (todo): write your description
+        """
         ap = np.zeros(self.num_class)
         max_recall = np.zeros(self.num_class)
         for i in range(len(self.verb_name_dict)):
@@ -110,6 +130,14 @@ class hico():
         return mAP
 
     def voc_ap(self, rec, prec):
+        """
+        Calculate the vocab.
+
+        Args:
+            self: (todo): write your description
+            rec: (todo): write your description
+            prec: (str): write your description
+        """
         ap = 0.
         for t in np.arange(0., 1.1, 0.1):
             if np.sum(rec >= t) == 0:
@@ -120,6 +148,17 @@ class hico():
         return ap
 
     def compute_fptp(self, pred_hoi, gt_hoi, match_pairs, pred_bbox,bbox_ov):
+        """
+        Computes the fptpairs in a list of pred_ho )
+
+        Args:
+            self: (todo): write your description
+            pred_hoi: (todo): write your description
+            gt_hoi: (todo): write your description
+            match_pairs: (todo): write your description
+            pred_bbox: (todo): write your description
+            bbox_ov: (bool): write your description
+        """
         pos_pred_ids = match_pairs.keys()
         vis_tag = np.zeros(len(gt_hoi))
         pred_hoi.sort(key=lambda k: (k.get('score', 0)), reverse=True)
@@ -160,6 +199,14 @@ class hico():
                 self.score[verb_id].append(pred_hoi_i['score'])
 
     def compute_iou_mat(self, bbox_list1, bbox_list2):
+        """
+        Compute the iou_matrix between two bounding box.
+
+        Args:
+            self: (todo): write your description
+            bbox_list1: (list): write your description
+            bbox_list2: (list): write your description
+        """
         iou_mat = np.zeros((len(bbox_list1), len(bbox_list2)))
         if len(bbox_list1) == 0 or len(bbox_list2) == 0:
             return {}
@@ -185,6 +232,14 @@ class hico():
         return match_pairs_dict,match_pairs_ov
 
     def compute_IOU(self, bbox1, bbox2):
+        """
+        Compute the i - th i - th i.
+
+        Args:
+            self: (todo): write your description
+            bbox1: (array): write your description
+            bbox2: (array): write your description
+        """
         if isinstance(bbox1['category_id'], str):
             bbox1['category_id'] = int(bbox1['category_id'].replace('\n', ''))
         if isinstance(bbox2['category_id'], str):
@@ -214,6 +269,13 @@ class hico():
             return 0
 
     def add_One(self,prediction):  #Add 1 to all coordinates
+        """
+        Add a pred_bbox.
+
+        Args:
+            self: (todo): write your description
+            prediction: (array): write your description
+        """
         for i, pred_bbox in enumerate(prediction):
             rec = pred_bbox['bbox']
             rec[0]+=1

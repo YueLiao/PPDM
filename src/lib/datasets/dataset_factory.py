@@ -12,6 +12,12 @@ dataset_factory = {
 }
 
 def get_dataset(dataset):
+    """
+    Get a dataset.
+
+    Args:
+        dataset: (str): write your description
+    """
   class Dataset(dataset_factory[dataset]):
       pass
   return Dataset

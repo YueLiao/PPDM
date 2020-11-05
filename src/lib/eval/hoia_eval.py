@@ -4,6 +4,13 @@ import os
 
 class hoia():
     def __init__(self, annotation_file):
+        """
+        Initialize an annotation file.
+
+        Args:
+            self: (todo): write your description
+            annotation_file: (str): write your description
+        """
         self.annotations = json.load(open(annotation_file, 'r'))
         self.overlap_iou = 0.5
         self.verb_name_dict = {1: 'smoke', 2: 'call', 3: 'play(cellphone)', 4: 'eat', 5: 'drink',
@@ -29,6 +36,13 @@ class hoia():
         self.num_class = len(list(self.verb_name_dict.keys()))
 
     def evalution(self, predict_annot):
+        """
+        Compute evaluation on predictions.
+
+        Args:
+            self: (todo): write your description
+            predict_annot: (todo): write your description
+        """
         for pred_i in predict_annot:
             if pred_i['file_name'] not in self.file_name:
                 continue
@@ -43,6 +57,12 @@ class hoia():
         return map
 
     def compute_map(self):
+        """
+        Compute the map for each sample
+
+        Args:
+            self: (todo): write your description
+        """
         ap = np.zeros(self.num_class)
         max_recall = np.zeros(self.num_class)
         for i in list(self.verb_name_dict.keys()):
@@ -75,6 +95,14 @@ class hoia():
         return mAP
 
     def voc_ap(self, rec, prec):
+        """
+        Calculate the vocab indices.
+
+        Args:
+            self: (todo): write your description
+            rec: (todo): write your description
+            prec: (str): write your description
+        """
         mrec = np.concatenate(([0.], rec, [1.]))
         mpre = np.concatenate(([0.], prec, [0.]))
         for i in range(mpre.size - 1, 0, -1):
@@ -84,6 +112,15 @@ class hoia():
         return ap
 
     def compute_fptp(self, pred_hoi, gt_hoi, match_pairs):
+        """
+        Compute a list of pred_hopairs.
+
+        Args:
+            self: (todo): write your description
+            pred_hoi: (todo): write your description
+            gt_hoi: (todo): write your description
+            match_pairs: (todo): write your description
+        """
         pos_pred_ids = match_pairs.keys()
         vis_tag = np.zeros(len(gt_hoi))
         pred_hoi.sort(key=lambda k: (k.get('score', 0)), reverse=True)
@@ -114,6 +151,14 @@ class hoia():
                 self.score[pred_hoi_i['category_id']].append(pred_hoi_i['score'])
 
     def compute_iou_mat(self, bbox_list1, bbox_list2):
+        """
+        Compute the iou_matrix.
+
+        Args:
+            self: (todo): write your description
+            bbox_list1: (list): write your description
+            bbox_list2: (list): write your description
+        """
         iou_mat = np.zeros((len(bbox_list1), len(bbox_list2)))
         if len(bbox_list1) == 0 or len(bbox_list2) == 0:
             return {}
@@ -134,6 +179,14 @@ class hoia():
         return match_pairs_dict
 
     def compute_IOU(self, bbox1, bbox2):
+        """
+        Compute the i - th i - th i.
+
+        Args:
+            self: (todo): write your description
+            bbox1: (array): write your description
+            bbox2: (array): write your description
+        """
         if isinstance(bbox1['category_id'], str):
             bbox1['category_id'] = int(bbox1['category_id'].replace('\n', ''))
         if isinstance(bbox2['category_id'], str):

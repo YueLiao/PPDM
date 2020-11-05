@@ -15,6 +15,13 @@ from utils.image import get_affine_transform
 
 class BaseDetector(object):
   def __init__(self, opt):
+      """
+      Initialize the device
+
+      Args:
+          self: (todo): write your description
+          opt: (dict): write your description
+      """
     if opt.gpus[0] >= 0:
       opt.device = torch.device('cuda')
     else:
@@ -35,6 +42,15 @@ class BaseDetector(object):
     self.pause = True
 
   def pre_process(self, image, scale, meta=None):
+      """
+      Pre_process ( image ( image.
+
+      Args:
+          self: (todo): write your description
+          image: (array): write your description
+          scale: (float): write your description
+          meta: (todo): write your description
+      """
     height, width = image.shape[0:2]
     new_height = int(height * scale)
     new_width  = int(width * scale)
@@ -64,15 +80,50 @@ class BaseDetector(object):
     return images, meta
 
   def process(self, images, return_time=False):
+      """
+      Process a single image.
+
+      Args:
+          self: (todo): write your description
+          images: (todo): write your description
+          return_time: (bool): write your description
+      """
     raise NotImplementedError
 
   def post_process(self, dets, meta, scale=1):
+      """
+      Post process to - process.
+
+      Args:
+          self: (todo): write your description
+          dets: (todo): write your description
+          meta: (todo): write your description
+          scale: (float): write your description
+      """
     raise NotImplementedError
 
   def get_hoi_output(self, det_sub, det_obj, rel, c):
+      """
+      Compute the output.
+
+      Args:
+          self: (todo): write your description
+          det_sub: (todo): write your description
+          det_obj: (todo): write your description
+          rel: (str): write your description
+          c: (todo): write your description
+      """
     raise NotImplementedError
 
   def run(self, image_or_path_or_tensor, meta=None):
+      """
+      Run image_or_tensor.
+
+      Args:
+          self: (todo): write your description
+          image_or_path_or_tensor: (str): write your description
+          meta: (dict): write your description
+      """
     load_time, pre_time, net_time, dec_time, post_time = 0, 0, 0, 0, 0
     merge_time, tot_time = 0, 0
     start_time = time.time()

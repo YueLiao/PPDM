@@ -53,6 +53,13 @@ class Logger(object):
     self.start_line = True
 
   def write(self, txt):
+      """
+      Write text to txt file.
+
+      Args:
+          self: (todo): write your description
+          txt: (todo): write your description
+      """
     if self.start_line:
       time_str = time.strftime('%Y-%m-%d-%H-%M')
       self.log.write('{}: {}'.format(time_str, txt))
@@ -64,6 +71,12 @@ class Logger(object):
       self.log.flush()
   
   def close(self):
+      """
+      Close the connection.
+
+      Args:
+          self: (todo): write your description
+      """
     self.log.close()
   
   def scalar_summary(self, tag, value, step):

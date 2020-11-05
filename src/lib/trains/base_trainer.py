@@ -11,11 +11,26 @@ from utils.utils import AverageMeter
 
 class ModleWithLoss(torch.nn.Module):
   def __init__(self, model, loss):
+      """
+      Initialize the loss.
+
+      Args:
+          self: (todo): write your description
+          model: (todo): write your description
+          loss: (todo): write your description
+      """
     super(ModleWithLoss, self).__init__()
     self.model = model
     self.loss = loss
   
   def forward(self, batch):
+      """
+      Forward computation.
+
+      Args:
+          self: (todo): write your description
+          batch: (todo): write your description
+      """
     outputs = self.model(batch['input'])
     loss, loss_stats = self.loss(outputs, batch)
     return outputs[-1], loss, loss_stats
@@ -23,12 +38,30 @@ class ModleWithLoss(torch.nn.Module):
 class BaseTrainer(object):
   def __init__(
     self, opt, model, optimizer=None):
+      """
+      Initialize the optimizer.
+
+      Args:
+          self: (todo): write your description
+          opt: (dict): write your description
+          model: (todo): write your description
+          optimizer: (todo): write your description
+      """
     self.opt = opt
     self.optimizer = optimizer
     self.loss_stats, self.loss = self._get_losses(opt)
     self.model_with_loss = ModleWithLoss(model, self.loss)
 
   def set_device(self, gpus, chunk_sizes, device):
+      """
+      Sets the state to the given value.
+
+      Args:
+          self: (todo): write your description
+          gpus: (todo): write your description
+          chunk_sizes: (int): write your description
+          device: (todo): write your description
+      """
     if len(gpus) > 1:
       self.model_with_loss = DataParallel(
         self.model_with_loss, device_ids=gpus, 
@@ -42,6 +75,15 @@ class BaseTrainer(object):
           state[k] = v.to(device=device, non_blocking=True)
 
   def run_epoch(self, phase, epoch, data_loader):
+      """
+      Run the optimization.
+
+      Args:
+          self: (todo): write your description
+          phase: (todo): write your description
+          epoch: (todo): write your description
+          data_loader: (todo): write your description
+      """
     model_with_loss = self.model_with_loss
     if phase == 'train':
       model_with_loss.train()
@@ -102,13 +144,45 @@ class BaseTrainer(object):
   
 
   def save_result(self, output, batch, results):
+      """
+      Save the results.
+
+      Args:
+          self: (todo): write your description
+          output: (str): write your description
+          batch: (todo): write your description
+          results: (dict): write your description
+      """
     raise NotImplementedError
 
   def _get_losses(self, opt):
+      """
+      Returns a list of the given option.
+
+      Args:
+          self: (todo): write your description
+          opt: (str): write your description
+      """
     raise NotImplementedError
   
   def val(self, epoch, data_loader):
+      """
+      Run the epoch.
+
+      Args:
+          self: (todo): write your description
+          epoch: (int): write your description
+          data_loader: (todo): write your description
+      """
     return self.run_epoch('val', epoch, data_loader)
 
   def train(self, epoch, data_loader):
+      """
+      Train the model.
+
+      Args:
+          self: (todo): write your description
+          epoch: (int): write your description
+          data_loader: (todo): write your description
+      """
     return self.run_epoch('train', epoch, data_loader)

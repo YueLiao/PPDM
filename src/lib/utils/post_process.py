@@ -7,9 +7,21 @@ from .image import transform_preds
 
 
 def get_pred_depth(depth):
+    """
+    Get the depth of a node.
+
+    Args:
+        depth: (int): write your description
+    """
   return depth
 
 def get_alpha(rot):
+    """
+    Get alpha matrix.
+
+    Args:
+        rot: (str): write your description
+    """
   # output: (B, 8) [bin1_cls[0], bin1_cls[1], bin1_sin, bin1_cos, 
   #                 bin2_cls[0], bin2_cls[1], bin2_sin, bin2_cos]
   # return rot[:, 0]
@@ -22,6 +34,16 @@ def get_alpha(rot):
 
 
 def ctdet_post_process(dets, c, s, h, w):
+    """
+    Ctdet_post_post_process_process_process_process_process
+
+    Args:
+        dets: (todo): write your description
+        c: (todo): write your description
+        s: (todo): write your description
+        h: (todo): write your description
+        w: (todo): write your description
+    """
   # dets: batch x max_dets x dim
   # return 1-based class det dict
   ret = []

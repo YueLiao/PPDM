@@ -9,6 +9,12 @@ import sys
 
 class opts(object):
     def __init__(self):
+        """
+        Initialize the arguments.
+
+        Args:
+            self: (todo): write your description
+        """
         self.parser = argparse.ArgumentParser()
         # basic experiment setting
         self.parser.add_argument('task', default='hoidet',
@@ -183,6 +189,12 @@ class opts(object):
                                  , help='whether using verb categories for subject')
 
     def parse(self, args=''):
+        """
+        Parse command line arguments.
+
+        Args:
+            self: (str): write your description
+        """
         if args == '':
             opt = self.parser.parse_args()
         else:
@@ -237,6 +249,14 @@ class opts(object):
         return opt
 
     def update_dataset_info_and_set_heads(self, opt, dataset):
+        """
+        Update the model and dataset information of the given dataset.
+
+        Args:
+            self: (todo): write your description
+            opt: (todo): write your description
+            dataset: (todo): write your description
+        """
         input_h, input_w = dataset.default_resolution
         opt.mean, opt.std = dataset.mean, dataset.std
         opt.num_classes = dataset.num_classes
@@ -267,6 +287,12 @@ class opts(object):
         return opt
 
     def init(self, args=''):
+        """
+        Initialize the dataset.
+
+        Args:
+            self: (todo): write your description
+        """
         default_dataset_info = {
             'hoidet': {'default_resolution': [512, 512], 'num_classes': 80,
                   'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
@@ -275,6 +301,13 @@ class opts(object):
 
         class Struct:
             def __init__(self, entries):
+                """
+                Sets all entries.
+
+                Args:
+                    self: (todo): write your description
+                    entries: (dict): write your description
+                """
                 for k, v in entries.items():
                     self.__setattr__(k, v)
 

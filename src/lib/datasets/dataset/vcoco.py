@@ -28,6 +28,16 @@ class VCOCO(Dataset):
     std = np.array([0.28863828, 0.27408164, 0.27809835],
                    dtype=np.float32).reshape(1, 1, 3)
     def __init__(self,  opt, split = 'train', resize_keep_ratio=False, multiscale_mode='value'):
+        """
+        Initialize the multi - style images.
+
+        Args:
+            self: (todo): write your description
+            opt: (dict): write your description
+            split: (int): write your description
+            resize_keep_ratio: (int): write your description
+            multiscale_mode: (bool): write your description
+        """
         self.opt = opt
         self.root = os.path.join(self.opt.root_path, 'verbcoco')
         self.image_dir = self.opt.image_dir
@@ -87,17 +97,39 @@ class VCOCO(Dataset):
             self.ids = list(range(len(self.hoi_annotations)))
 
     def _get_border(self, border, size):
+        """
+        Returns : pygments.
+
+        Args:
+            self: (todo): write your description
+            border: (str): write your description
+            size: (int): write your description
+        """
         i = 1
         while size - border // i <= border // i:
             i *= 2
         return border // i
 
     def _coco_box_to_bbox(self, box):
+        """
+        Convert box to bounding box.
+
+        Args:
+            self: (todo): write your description
+            box: (todo): write your description
+        """
         bbox = np.array([box[0], box[1], box[0] + box[2], box[1] + box[3]],
                         dtype=np.float32)
         return bbox
 
     def __getitem__(self, index):
+        """
+        Get the image
+
+        Args:
+            self: (todo): write your description
+            index: (int): write your description
+        """
         img_id = self.ids[index]
 
         file_name = self.hoi_annotations[img_id]['file_name']
@@ -234,7 +266,19 @@ class VCOCO(Dataset):
         return ret
 
     def __len__(self):
+        """
+        Returns the length of the length.
+
+        Args:
+            self: (todo): write your description
+        """
         return len(self.ids)
 
     def shuffle(self):
+        """
+        Shuffle the sequence of the sequence.
+
+        Args:
+            self: (todo): write your description
+        """
         random.shuffle(self.ids)

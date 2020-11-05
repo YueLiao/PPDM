@@ -11,6 +11,12 @@ def scatter(inputs, target_gpus, dim=0, chunk_sizes=None):
     support Tensors.
     """
     def scatter_map(obj):
+        """
+        Scatter to a list of arrays.
+
+        Args:
+            obj: (dict): write your description
+        """
         if isinstance(obj, Variable):
             return Scatter.apply(target_gpus, chunk_sizes, dim, obj)
         assert not torch.is_tensor(obj), "Tensors not supported in scatter."

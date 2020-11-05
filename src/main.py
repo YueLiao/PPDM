@@ -16,6 +16,12 @@ from datasets.dataset_factory import get_dataset
 from trains.train_factory import train_factory
 
 def main(opt):
+    """
+    Run the training.
+
+    Args:
+        opt: (int): write your description
+    """
   torch.manual_seed(opt.seed)
   torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
   Dataset = get_dataset(opt.dataset)

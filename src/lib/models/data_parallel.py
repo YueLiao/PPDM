@@ -42,6 +42,17 @@ class _DataParallel(Module):
     # TODO: update notes/cuda.rst when this class handles 8+ GPUs well
 
     def __init__(self, module, device_ids=None, output_device=None, dim=0, chunk_sizes=None):
+        """
+        Initialize the device.
+
+        Args:
+            self: (todo): write your description
+            module: (str): write your description
+            device_ids: (str): write your description
+            output_device: (int): write your description
+            dim: (int): write your description
+            chunk_sizes: (int): write your description
+        """
         super(_DataParallel, self).__init__()
 
         if not torch.cuda.is_available():
@@ -62,6 +73,13 @@ class _DataParallel(Module):
             self.module.cuda(device_ids[0])
 
     def forward(self, *inputs, **kwargs):
+        """
+        Perform forward computation.
+
+        Args:
+            self: (todo): write your description
+            inputs: (todo): write your description
+        """
         if not self.device_ids:
             return self.module(*inputs, **kwargs)
         inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids, self.chunk_sizes)
@@ -72,15 +90,48 @@ class _DataParallel(Module):
         return self.gather(outputs, self.output_device)
 
     def replicate(self, module, device_ids):
+        """
+        Replicate a module.
+
+        Args:
+            self: (todo): write your description
+            module: (todo): write your description
+            device_ids: (str): write your description
+        """
         return replicate(module, device_ids)
 
     def scatter(self, inputs, kwargs, device_ids, chunk_sizes):
+        """
+        Creates a scatter plot of the input data.
+
+        Args:
+            self: (str): write your description
+            inputs: (str): write your description
+            device_ids: (int): write your description
+            chunk_sizes: (int): write your description
+        """
         return scatter_kwargs(inputs, kwargs, device_ids, dim=self.dim, chunk_sizes=self.chunk_sizes)
 
     def parallel_apply(self, replicas, inputs, kwargs):
+        """
+        Apply the given replicas.
+
+        Args:
+            self: (todo): write your description
+            replicas: (int): write your description
+            inputs: (array): write your description
+        """
         return parallel_apply(replicas, inputs, kwargs, self.device_ids[:len(replicas)])
 
     def gather(self, outputs, output_device):
+        """
+        Gathers the outputs from the device.
+
+        Args:
+            self: (todo): write your description
+            outputs: (todo): write your description
+            output_device: (todo): write your description
+        """
         return gather(outputs, output_device, dim=self.dim)
 
 
@@ -117,6 +168,16 @@ def data_parallel(module, inputs, device_ids=None, output_device=None, dim=0, mo
     return gather(outputs, output_device, dim)
 
 def DataParallel(module, device_ids=None, output_device=None, dim=0, chunk_sizes=None):
+    """
+    Convenience function.
+
+    Args:
+        module: (todo): write your description
+        device_ids: (int): write your description
+        output_device: (str): write your description
+        dim: (int): write your description
+        chunk_sizes: (int): write your description
+    """
     if chunk_sizes is None:
         return torch.nn.DataParallel(module, device_ids, output_device, dim)
     standard_size = True
