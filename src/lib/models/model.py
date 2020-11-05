@@ -22,6 +22,14 @@ _model_factory = {
 }
 
 def create_model(arch, heads, head_conv):
+    """
+    Create a model from a architecture.
+
+    Args:
+        arch: (str): write your description
+        heads: (list): write your description
+        head_conv: (str): write your description
+    """
   num_layers = int(arch[arch.find('_') + 1:]) if '_' in arch else 0
   arch = arch[:arch.find('_')] if '_' in arch else arch
   get_model = _model_factory[arch]
@@ -30,6 +38,17 @@ def create_model(arch, heads, head_conv):
 
 def load_model(model, model_path, optimizer=None, resume=False, 
                lr=None, lr_step=None):
+    """
+    Loads the model.
+
+    Args:
+        model: (todo): write your description
+        model_path: (str): write your description
+        optimizer: (todo): write your description
+        resume: (dict): write your description
+        lr: (str): write your description
+        lr_step: (int): write your description
+    """
   start_epoch = 0
   checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
   print('loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
@@ -80,6 +99,15 @@ def load_model(model, model_path, optimizer=None, resume=False,
     return model
 
 def save_model(path, epoch, model, optimizer=None):
+    """
+    Save the model to disk.
+
+    Args:
+        path: (str): write your description
+        epoch: (int): write your description
+        model: (todo): write your description
+        optimizer: (todo): write your description
+    """
   if isinstance(model, torch.nn.DataParallel):
     state_dict = model.module.state_dict()
   else:

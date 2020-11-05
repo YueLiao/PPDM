@@ -12,6 +12,13 @@ from .base_trainer import BaseTrainer
 
 class HoidetLoss(torch.nn.Module):
     def __init__(self, opt):
+        """
+        Initialize the gradient.
+
+        Args:
+            self: (todo): write your description
+            opt: (dict): write your description
+        """
         super(HoidetLoss, self).__init__()
         self.crit = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()
         self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
@@ -22,6 +29,14 @@ class HoidetLoss(torch.nn.Module):
         self.opt = opt
 
     def forward(self, outputs, batch):
+        """
+        Forward computation
+
+        Args:
+            self: (todo): write your description
+            outputs: (todo): write your description
+            batch: (todo): write your description
+        """
         opt = self.opt
         hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
         for s in range(opt.num_stacks):
@@ -70,9 +85,25 @@ class HoidetLoss(torch.nn.Module):
 
 class HoidetTrainer(BaseTrainer):
     def __init__(self, opt, model, optimizer=None):
+        """
+        Initialize the optimizer.
+
+        Args:
+            self: (todo): write your description
+            opt: (dict): write your description
+            model: (todo): write your description
+            optimizer: (todo): write your description
+        """
         super(HoidetTrainer, self).__init__(opt, model, optimizer=optimizer)
 
     def _get_losses(self, opt):
+        """
+        Compute losses.
+
+        Args:
+            self: (todo): write your description
+            opt: (str): write your description
+        """
         loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss', 'sub_offset_loss',
                        'obj_offset_loss']
         loss = HoidetLoss(opt)

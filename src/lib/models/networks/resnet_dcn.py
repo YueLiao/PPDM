@@ -32,6 +32,16 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
+        """
+        Initialize batch.
+
+        Args:
+            self: (todo): write your description
+            inplanes: (todo): write your description
+            planes: (todo): write your description
+            stride: (int): write your description
+            downsample: (todo): write your description
+        """
         super(BasicBlock, self).__init__()
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
@@ -42,6 +52,13 @@ class BasicBlock(nn.Module):
         self.stride = stride
 
     def forward(self, x):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         residual = x
 
         out = self.conv1(x)
@@ -64,6 +81,16 @@ class Bottleneck(nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
+        """
+        Initialize the convolutional layer.
+
+        Args:
+            self: (todo): write your description
+            inplanes: (todo): write your description
+            planes: (todo): write your description
+            stride: (int): write your description
+            downsample: (todo): write your description
+        """
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
@@ -79,6 +106,13 @@ class Bottleneck(nn.Module):
         self.stride = stride
 
     def forward(self, x):
+        """
+        Perform forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         residual = x
 
         out = self.conv1(x)
@@ -101,6 +135,12 @@ class Bottleneck(nn.Module):
         return out
 
 def fill_up_weights(up):
+    """
+    Fill up up the weight.
+
+    Args:
+        up: (array): write your description
+    """
     w = up.weight.data
     f = math.ceil(w.size(2) / 2)
     c = (2 * f - 1 - f % 2) / (2. * f)
@@ -112,6 +152,12 @@ def fill_up_weights(up):
         w[c, 0, :, :] = w[0, 0, :, :] 
 
 def fill_fc_weights(layers):
+    """
+    Fill weight weights of layers.
+
+    Args:
+        layers: (todo): write your description
+    """
     for m in layers.modules():
         if isinstance(m, nn.Conv2d):
             nn.init.normal_(m.weight, std=0.001)
@@ -123,6 +169,16 @@ def fill_fc_weights(layers):
 class PoseResNet(nn.Module):
 
     def __init__(self, block, layers, heads, head_conv):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            block: (todo): write your description
+            layers: (list): write your description
+            heads: (todo): write your description
+            head_conv: (todo): write your description
+        """
         self.inplanes = 64
         self.heads = heads
         self.deconv_with_bias = False
@@ -170,6 +226,16 @@ class PoseResNet(nn.Module):
             self.__setattr__(head, fc)
 
     def _make_layer(self, block, planes, blocks, stride=1):
+        """
+        Make a layer.
+
+        Args:
+            self: (todo): write your description
+            block: (todo): write your description
+            planes: (todo): write your description
+            blocks: (todo): write your description
+            stride: (int): write your description
+        """
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
@@ -187,6 +253,14 @@ class PoseResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def _get_deconv_cfg(self, deconv_kernel, index):
+        """
+        Get deconv_cfg.
+
+        Args:
+            self: (todo): write your description
+            deconv_kernel: (str): write your description
+            index: (int): write your description
+        """
         if deconv_kernel == 4:
             padding = 1
             output_padding = 0
@@ -200,6 +274,15 @@ class PoseResNet(nn.Module):
         return deconv_kernel, padding, output_padding
 
     def _make_deconv_layer(self, num_layers, num_filters, num_kernels):
+        """
+        Make a convolution layer.
+
+        Args:
+            self: (todo): write your description
+            num_layers: (int): write your description
+            num_filters: (int): write your description
+            num_kernels: (int): write your description
+        """
         assert num_layers == len(num_filters), \
             'ERROR: num_deconv_layers is different len(num_deconv_filters)'
         assert num_layers == len(num_kernels), \
@@ -239,6 +322,13 @@ class PoseResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -256,6 +346,13 @@ class PoseResNet(nn.Module):
         return [ret]
 
     def init_weights(self, num_layers):
+        """
+        Initialize weights.
+
+        Args:
+            self: (todo): write your description
+            num_layers: (int): write your description
+        """
         if 1:
             url = model_urls['resnet{}'.format(num_layers)]
             pretrained_state_dict = model_zoo.load_url(url)
@@ -276,6 +373,14 @@ resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
 
 
 def get_pose_net(num_layers, heads, head_conv=256):
+    """
+    Get a network.
+
+    Args:
+        num_layers: (int): write your description
+        heads: (str): write your description
+        head_conv: (str): write your description
+    """
   block_class, layers = resnet_spec[num_layers]
 
   model = PoseResNet(block_class, layers, heads, head_conv=head_conv)

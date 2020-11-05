@@ -67,6 +67,13 @@ def _neg_loss(pred, gt):
   return loss
 
 def _not_faster_neg_loss(pred, gt):
+    """
+    Compute the faster loss.
+
+    Args:
+        pred: (array): write your description
+        gt: (todo): write your description
+    """
     pos_inds = gt.eq(1).float()
     neg_inds = gt.lt(1).float()    
     num_pos  = pos_inds.float().sum()
@@ -84,6 +91,14 @@ def _not_faster_neg_loss(pred, gt):
     return loss
 
 def _slow_reg_loss(regr, gt_regr, mask):
+    """
+    Slow loss loss.
+
+    Args:
+        regr: (int): write your description
+        gt_regr: (int): write your description
+        mask: (array): write your description
+    """
     num  = mask.float().sum()
     mask = mask.unsqueeze(2).expand_as(gt_regr)
 
@@ -114,10 +129,24 @@ def _reg_loss(regr, gt_regr, mask):
 class FocalLoss(nn.Module):
   '''nn.Module warpper for focal loss'''
   def __init__(self):
+      """
+      Initialize loss.
+
+      Args:
+          self: (todo): write your description
+      """
     super(FocalLoss, self).__init__()
     self.neg_loss = _neg_loss
 
   def forward(self, out, target):
+      """
+      Forward loss
+
+      Args:
+          self: (todo): write your description
+          out: (array): write your description
+          target: (todo): write your description
+      """
     return self.neg_loss(out, target)
 
 class RegLoss(nn.Module):
@@ -129,18 +158,50 @@ class RegLoss(nn.Module):
       target (batch x max_objects x dim)
   '''
   def __init__(self):
+      """
+      Initialize the superclass
+
+      Args:
+          self: (todo): write your description
+      """
     super(RegLoss, self).__init__()
   
   def forward(self, output, mask, ind, target):
+      """
+      Forward computation.
+
+      Args:
+          self: (todo): write your description
+          output: (todo): write your description
+          mask: (todo): write your description
+          ind: (todo): write your description
+          target: (todo): write your description
+      """
     pred = _tranpose_and_gather_feat(output, ind)
     loss = _reg_loss(pred, target, mask)
     return loss
 
 class RegL1Loss(nn.Module):
   def __init__(self):
+      """
+      Initialize the superclass
+
+      Args:
+          self: (todo): write your description
+      """
     super(RegL1Loss, self).__init__()
   
   def forward(self, output, mask, ind, target):
+      """
+      Forward computation.
+
+      Args:
+          self: (todo): write your description
+          output: (todo): write your description
+          mask: (todo): write your description
+          ind: (todo): write your description
+          target: (todo): write your description
+      """
     pred = _tranpose_and_gather_feat(output, ind)
     mask = mask.unsqueeze(2).expand_as(pred).float()
     # loss = F.l1_loss(pred * mask, target * mask, reduction='elementwise_mean')
@@ -150,9 +211,25 @@ class RegL1Loss(nn.Module):
 
 class NormRegL1Loss(nn.Module):
   def __init__(self):
+      """
+      Initialize the superclass
+
+      Args:
+          self: (todo): write your description
+      """
     super(NormRegL1Loss, self).__init__()
   
   def forward(self, output, mask, ind, target):
+      """
+      Forward computation.
+
+      Args:
+          self: (todo): write your description
+          output: (todo): write your description
+          mask: (todo): write your description
+          ind: (todo): write your description
+          target: (todo): write your description
+      """
     pred = _tranpose_and_gather_feat(output, ind)
     mask = mask.unsqueeze(2).expand_as(pred).float()
     # loss = F.l1_loss(pred * mask, target * mask, reduction='elementwise_mean')
@@ -164,9 +241,25 @@ class NormRegL1Loss(nn.Module):
 
 class RegWeightedL1Loss(nn.Module):
   def __init__(self):
+      """
+      Initialize the l1.
+
+      Args:
+          self: (todo): write your description
+      """
     super(RegWeightedL1Loss, self).__init__()
   
   def forward(self, output, mask, ind, target):
+      """
+      Forward computation.
+
+      Args:
+          self: (todo): write your description
+          output: (todo): write your description
+          mask: (todo): write your description
+          ind: (todo): write your description
+          target: (todo): write your description
+      """
     pred = _tranpose_and_gather_feat(output, ind)
     mask = mask.float()
     # loss = F.l1_loss(pred * mask, target * mask, reduction='elementwise_mean')
@@ -176,9 +269,25 @@ class RegWeightedL1Loss(nn.Module):
 
 class L1Loss(nn.Module):
   def __init__(self):
+      """
+      Initialize the l1 and l1.
+
+      Args:
+          self: (todo): write your description
+      """
     super(L1Loss, self).__init__()
   
   def forward(self, output, mask, ind, target):
+      """
+      Forward computation.
+
+      Args:
+          self: (todo): write your description
+          output: (todo): write your description
+          mask: (todo): write your description
+          ind: (todo): write your description
+          target: (todo): write your description
+      """
     pred = _tranpose_and_gather_feat(output, ind)
     mask = mask.unsqueeze(2).expand_as(pred).float()
     loss = F.l1_loss(pred * mask, target * mask, reduction='elementwise_mean')
@@ -186,23 +295,64 @@ class L1Loss(nn.Module):
 
 class BinRotLoss(nn.Module):
   def __init__(self):
+      """
+      Initialize binRot
+
+      Args:
+          self: (todo): write your description
+      """
     super(BinRotLoss, self).__init__()
   
   def forward(self, output, mask, ind, rotbin, rotres):
+      """
+      Forward computation.
+
+      Args:
+          self: (todo): write your description
+          output: (todo): write your description
+          mask: (todo): write your description
+          ind: (todo): write your description
+          rotbin: (todo): write your description
+          rotres: (todo): write your description
+      """
     pred = _tranpose_and_gather_feat(output, ind)
     loss = compute_rot_loss(pred, rotbin, rotres, mask)
     return loss
 
 def compute_res_loss(output, target):
+    """
+    Compute the loss loss.
+
+    Args:
+        output: (str): write your description
+        target: (todo): write your description
+    """
     return F.smooth_l1_loss(output, target, reduction='elementwise_mean')
 
 # TODO: weight
 def compute_bin_loss(output, target, mask):
+    """
+    Compute the bin loss.
+
+    Args:
+        output: (todo): write your description
+        target: (todo): write your description
+        mask: (array): write your description
+    """
     mask = mask.expand_as(output)
     output = output * mask.float()
     return F.cross_entropy(output, target, reduction='elementwise_mean')
 
 def compute_rot_loss(output, target_bin, target_res, mask):
+    """
+    Compute the loss loss.
+
+    Args:
+        output: (todo): write your description
+        target_bin: (todo): write your description
+        target_res: (todo): write your description
+        mask: (array): write your description
+    """
     # output: (B, 128, 8) [bin1_cls[0], bin1_cls[1], bin1_sin, bin1_cos, 
     #                 bin2_cls[0], bin2_cls[1], bin2_sin, bin2_cos]
     # target_bin: (B, 128, 2) [bin1_cls, bin2_cls]

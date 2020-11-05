@@ -7,6 +7,13 @@ import torch.nn as nn
 from .utils import _gather_feat, _tranpose_and_gather_feat
 import numpy as np
 def _nms(heat, kernel=3):
+    """
+    Nms operator.
+
+    Args:
+        heat: (todo): write your description
+        kernel: (todo): write your description
+    """
     pad = (kernel - 1) // 2
 
     hmax = nn.functional.max_pool2d(
@@ -15,6 +22,13 @@ def _nms(heat, kernel=3):
     return heat * keep
 
 def _topk(scores, K=40):
+    """
+    Returns k - k k k k k k k k k k k k k k k k k k k k k k k k k k k
+
+    Args:
+        scores: (todo): write your description
+        K: (todo): write your description
+    """
     batch, cat, height, width = scores.size()
       
     topk_scores, topk_inds = torch.topk(scores.view(batch, cat, -1), K)
@@ -33,6 +47,15 @@ def _topk(scores, K=40):
     return topk_score, topk_inds, topk_clses, topk_ys, topk_xs
 
 def match_rel_box(rel, bbox, K_rel, K_bbox):
+    """
+    Match the bounding box.
+
+    Args:
+        rel: (todo): write your description
+        bbox: (todo): write your description
+        K_rel: (todo): write your description
+        K_bbox: (todo): write your description
+    """
     rel  = rel.view(K_rel,1)
     rel = rel.repeat(1, K_bbox)
     bbox = bbox.view(1, K_bbox)
@@ -41,6 +64,22 @@ def match_rel_box(rel, bbox, K_rel, K_bbox):
     return dis_mat
 
 def hoidet_decode( heat_obj, wh, heat_rel, offset_sub, offset_obj, reg=None, corremat = None, K_obj=100, K_human = 100, K_rel = 100, is_sub_verb = 0):
+    """
+    Decodes a batch.
+
+    Args:
+        heat_obj: (todo): write your description
+        wh: (str): write your description
+        heat_rel: (todo): write your description
+        offset_sub: (todo): write your description
+        offset_obj: (int): write your description
+        reg: (todo): write your description
+        corremat: (todo): write your description
+        K_obj: (todo): write your description
+        K_human: (int): write your description
+        K_rel: (todo): write your description
+        is_sub_verb: (todo): write your description
+    """
     batch, cat_obj, height, width = heat_obj.size()
     heat_obj = _nms(heat_obj)
     heat_rel = _nms(heat_rel)

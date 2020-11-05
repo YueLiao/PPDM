@@ -19,6 +19,15 @@ from eval.save_json import save_json
 
 class PrefetchDataset(torch.utils.data.Dataset):
   def __init__(self, opt, dataset, pre_process_func):
+      """
+      Initialize the image.
+
+      Args:
+          self: (todo): write your description
+          opt: (dict): write your description
+          dataset: (todo): write your description
+          pre_process_func: (todo): write your description
+      """
     self.pre_process_func = pre_process_func
     self.opt = opt
     self.root = dataset.root
@@ -27,6 +36,13 @@ class PrefetchDataset(torch.utils.data.Dataset):
     self.ids = dataset.ids
 
   def __getitem__(self, index):
+      """
+      Get image item for given index
+
+      Args:
+          self: (todo): write your description
+          index: (int): write your description
+      """
     img_id = self.ids[index]
     img_name = self.hoi_annotations[img_id]['file_name']
     img_path = os.path.join(self.root, self.image_dir, img_name)
@@ -37,9 +53,21 @@ class PrefetchDataset(torch.utils.data.Dataset):
     return img_id, {'images': images, 'image': image, 'meta': meta}
 
   def __len__(self):
+      """
+      Returns the length of the length.
+
+      Args:
+          self: (todo): write your description
+      """
     return len(self.ids)
 
 def prefetch_test(opt):
+    """
+    Prefetch a dataset
+
+    Args:
+        opt: (todo): write your description
+    """
   os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
 
   Dataset = get_dataset(opt.dataset)

@@ -13,6 +13,16 @@ from ._ext import dcn_v2 as _backend
 class DCNv2Function(Function):
 
     def __init__(self, stride, padding, dilation=1, deformable_groups=1):
+        """
+        Initialize the formable.
+
+        Args:
+            self: (todo): write your description
+            stride: (int): write your description
+            padding: (str): write your description
+            dilation: (todo): write your description
+            deformable_groups: (todo): write your description
+        """
         super(DCNv2Function, self).__init__()
         self.stride = stride
         self.padding = padding
@@ -20,6 +30,17 @@ class DCNv2Function(Function):
         self.deformable_groups = deformable_groups
 
     def forward(self, input, offset, mask, weight, bias):
+        """
+        Parameters ---------- input : nn.
+
+        Args:
+            self: (todo): write your description
+            input: (todo): write your description
+            offset: (todo): write your description
+            mask: (todo): write your description
+            weight: (str): write your description
+            bias: (todo): write your description
+        """
         if not input.is_cuda:
             raise NotImplementedError
         if weight.requires_grad or mask.requires_grad or offset.requires_grad or input.requires_grad:
@@ -38,6 +59,13 @@ class DCNv2Function(Function):
         return output
 
     def backward(self, grad_output):
+        """
+        Backward computation.
+
+        Args:
+            self: (todo): write your description
+            grad_output: (bool): write your description
+        """
         if not grad_output.is_cuda:
             raise NotImplementedError
         input, offset, mask, weight, bias = self.saved_tensors
@@ -62,6 +90,14 @@ class DCNv2Function(Function):
         return grad_input, grad_offset, grad_mask, grad_weight, grad_bias
 
     def _infer_shape(self, input, weight):
+        """
+        Infer shape of a shape.
+
+        Args:
+            self: (todo): write your description
+            input: (array): write your description
+            weight: (str): write your description
+        """
         n = input.size(0)
         channels_out = weight.size(0)
         height, width = input.shape[2:4]
@@ -84,6 +120,20 @@ class DCNv2PoolingFunction(Function):
                  part_size=None,
                  sample_per_part=4,
                  trans_std=.0):
+        """
+        Initialize a transformer.
+
+        Args:
+            self: (todo): write your description
+            spatial_scale: (float): write your description
+            pooled_size: (int): write your description
+            output_dim: (int): write your description
+            no_trans: (todo): write your description
+            group_size: (int): write your description
+            part_size: (int): write your description
+            sample_per_part: (bool): write your description
+            trans_std: (str): write your description
+        """
         super(DCNv2PoolingFunction, self).__init__()
         self.spatial_scale = spatial_scale
         self.pooled_size = pooled_size
@@ -97,6 +147,15 @@ class DCNv2PoolingFunction(Function):
         assert self.trans_std >= 0.0 and self.trans_std <= 1.0
 
     def forward(self, data, rois, offset):
+        """
+        Infer forward.
+
+        Args:
+            self: (todo): write your description
+            data: (array): write your description
+            rois: (todo): write your description
+            offset: (todo): write your description
+        """
         if not data.is_cuda:
             raise NotImplementedError
 
@@ -115,6 +174,13 @@ class DCNv2PoolingFunction(Function):
         return output
 
     def backward(self, grad_output):
+        """
+        Perform backward backward pass.
+
+        Args:
+            self: (todo): write your description
+            grad_output: (bool): write your description
+        """
         if not grad_output.is_cuda:
             raise NotImplementedError
 
@@ -140,6 +206,14 @@ class DCNv2PoolingFunction(Function):
         return grad_input, None, grad_offset
 
     def _infer_shape(self, data, rois):
+        """
+        Infer the shape of the data.
+
+        Args:
+            self: (todo): write your description
+            data: (array): write your description
+            rois: (todo): write your description
+        """
         # _, c, h, w = data.shape[:4]
         c = data.shape[1]
         n = rois.shape[0]

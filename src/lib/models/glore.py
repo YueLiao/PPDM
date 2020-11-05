@@ -7,6 +7,14 @@ class GraphConv1d(nn.Module):
     """Conducting reasoning on graph data"""
 
     def __init__(self, nodes, channels):
+        """
+        Initialize the graph.
+
+        Args:
+            self: (todo): write your description
+            nodes: (list): write your description
+            channels: (list): write your description
+        """
         super(GraphConv1d, self).__init__()
         self.node_conv = nn.Sequential(
             nn.Conv1d(nodes, nodes, kernel_size=1),
@@ -20,6 +28,13 @@ class GraphConv1d(nn.Module):
         )
 
     def forward(self, x):
+        """
+        Forward computation of forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         identity = x                            # [N, channel_feature, channel_node]
 
         out = torch.transpose(x, 1, 2)          # [N, channel_node, channel_feature]
@@ -38,6 +53,15 @@ class GloRe(nn.Module):
     """Global Reasoning Unit"""
 
     def __init__(self, channel_in, channel_reduced, channel_node):
+        """
+        Initialize a batch.
+
+        Args:
+            self: (todo): write your description
+            channel_in: (todo): write your description
+            channel_reduced: (todo): write your description
+            channel_node: (todo): write your description
+        """
         super(GloRe, self).__init__()
         # reduce dim
         self.phy = nn.Sequential(nn.Conv2d(channel_in, channel_reduced, 1),
@@ -56,6 +80,13 @@ class GloRe(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
+        """
+        Forward computation of the forward.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         identity = x                          # [batch, channel_in, H, W]
         height, width = x.size(2), x.size(3)
 

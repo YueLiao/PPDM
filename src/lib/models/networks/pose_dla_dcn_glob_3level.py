@@ -19,6 +19,14 @@ BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
 
 def get_model_url(data='imagenet', name='dla34', hash='ba72cf86'):
+    """
+    Returns model url.
+
+    Args:
+        data: (str): write your description
+        name: (str): write your description
+        hash: (str): write your description
+    """
     return join('http://dl.yf.io/dla/models', data, '{}-{}.pth'.format(name, hash))
 
 
@@ -30,6 +38,16 @@ def conv3x3(in_planes, out_planes, stride=1):
 
 class BasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride=1, dilation=1):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            inplanes: (todo): write your description
+            planes: (todo): write your description
+            stride: (int): write your description
+            dilation: (todo): write your description
+        """
         super(BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3,
                                stride=stride, padding=dilation,
@@ -43,6 +61,14 @@ class BasicBlock(nn.Module):
         self.stride = stride
 
     def forward(self, x, residual=None):
+        """
+        Forward computation of forward.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+            residual: (todo): write your description
+        """
         if residual is None:
             residual = x
 
@@ -63,6 +89,16 @@ class Bottleneck(nn.Module):
     expansion = 2
 
     def __init__(self, inplanes, planes, stride=1, dilation=1):
+        """
+        Initialize the convolution.
+
+        Args:
+            self: (todo): write your description
+            inplanes: (todo): write your description
+            planes: (todo): write your description
+            stride: (int): write your description
+            dilation: (todo): write your description
+        """
         super(Bottleneck, self).__init__()
         expansion = Bottleneck.expansion
         bottle_planes = planes // expansion
@@ -80,6 +116,14 @@ class Bottleneck(nn.Module):
         self.stride = stride
 
     def forward(self, x, residual=None):
+        """
+        Perform forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+            residual: (todo): write your description
+        """
         if residual is None:
             residual = x
 
@@ -105,6 +149,16 @@ class BottleneckX(nn.Module):
     cardinality = 32
 
     def __init__(self, inplanes, planes, stride=1, dilation=1):
+        """
+        Initialize batch.
+
+        Args:
+            self: (todo): write your description
+            inplanes: (todo): write your description
+            planes: (todo): write your description
+            stride: (int): write your description
+            dilation: (todo): write your description
+        """
         super(BottleneckX, self).__init__()
         cardinality = BottleneckX.cardinality
         # dim = int(math.floor(planes * (BottleneckV5.expansion / 64.0)))
@@ -124,6 +178,14 @@ class BottleneckX(nn.Module):
         self.stride = stride
 
     def forward(self, x, residual=None):
+        """
+        Perform forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+            residual: (todo): write your description
+        """
         if residual is None:
             residual = x
 
@@ -146,6 +208,16 @@ class BottleneckX(nn.Module):
 
 class Root(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, residual):
+        """
+        Initialize the convolutional layer.
+
+        Args:
+            self: (todo): write your description
+            in_channels: (int): write your description
+            out_channels: (int): write your description
+            kernel_size: (int): write your description
+            residual: (todo): write your description
+        """
         super(Root, self).__init__()
         self.conv = nn.Conv2d(
             in_channels, out_channels, 1,
@@ -155,6 +227,13 @@ class Root(nn.Module):
         self.residual = residual
 
     def forward(self, *x):
+        """
+        Forward the forward.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         children = x
         x = self.conv(torch.cat(x, 1))
         x = self.bn(x)
@@ -169,6 +248,22 @@ class Tree(nn.Module):
     def __init__(self, levels, block, in_channels, out_channels, stride=1,
                  level_root=False, root_dim=0, root_kernel_size=1,
                  dilation=1, root_residual=False):
+        """
+        Initialize a new tree.
+
+        Args:
+            self: (todo): write your description
+            levels: (int): write your description
+            block: (todo): write your description
+            in_channels: (int): write your description
+            out_channels: (int): write your description
+            stride: (int): write your description
+            level_root: (str): write your description
+            root_dim: (int): write your description
+            root_kernel_size: (int): write your description
+            dilation: (todo): write your description
+            root_residual: (str): write your description
+        """
         super(Tree, self).__init__()
         if root_dim == 0:
             root_dim = 2 * out_channels
@@ -206,6 +301,15 @@ class Tree(nn.Module):
             )
 
     def forward(self, x, residual=None, children=None):
+        """
+        Perform of the tree.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+            residual: (todo): write your description
+            children: (todo): write your description
+        """
         children = [] if children is None else children
         bottom = self.downsample(x) if self.downsample else x
         residual = self.project(bottom) if self.project else bottom
@@ -224,6 +328,19 @@ class Tree(nn.Module):
 class DLA(nn.Module):
     def __init__(self, levels, channels, num_classes=1000,
                  block=BasicBlock, residual_root=False, linear_root=False):
+        """
+        Initialize the layer.
+
+        Args:
+            self: (todo): write your description
+            levels: (int): write your description
+            channels: (list): write your description
+            num_classes: (int): write your description
+            block: (todo): write your description
+            BasicBlock: (todo): write your description
+            residual_root: (str): write your description
+            linear_root: (todo): write your description
+        """
         super(DLA, self).__init__()
         self.channels = channels
         self.num_classes = num_classes
@@ -255,6 +372,17 @@ class DLA(nn.Module):
         #         m.bias.data.zero_()
 
     def _make_level(self, block, inplanes, planes, blocks, stride=1):
+        """
+        Make a level.
+
+        Args:
+            self: (todo): write your description
+            block: (todo): write your description
+            inplanes: (todo): write your description
+            planes: (str): write your description
+            blocks: (todo): write your description
+            stride: (int): write your description
+        """
         downsample = None
         if stride != 1 or inplanes != planes:
             downsample = nn.Sequential(
@@ -272,6 +400,17 @@ class DLA(nn.Module):
         return nn.Sequential(*layers)
 
     def _make_conv_level(self, inplanes, planes, convs, stride=1, dilation=1):
+        """
+        Make a convolution level.
+
+        Args:
+            self: (todo): write your description
+            inplanes: (bool): write your description
+            planes: (list): write your description
+            convs: (todo): write your description
+            stride: (int): write your description
+            dilation: (str): write your description
+        """
         modules = []
         for i in range(convs):
             modules.extend([
@@ -284,6 +423,13 @@ class DLA(nn.Module):
         return nn.Sequential(*modules)
 
     def forward(self, x):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         y = []
         x = self.base_layer(x)
         for i in range(6):
@@ -292,6 +438,15 @@ class DLA(nn.Module):
         return y
 
     def load_pretrained_model(self, data='imagenet', name='dla34', hash='ba72cf86'):
+        """
+        Loads a trained model.
+
+        Args:
+            self: (todo): write your description
+            data: (array): write your description
+            name: (str): write your description
+            hash: (str): write your description
+        """
         # fc = self.fc
         if name.endswith('.pth'):
             model_weights = torch.load(data + name)
@@ -307,6 +462,12 @@ class DLA(nn.Module):
 
 
 def dla34(pretrained=True, **kwargs):  # DLA-34
+    """
+    Dla34 model.
+
+    Args:
+        pretrained: (bool): write your description
+    """
     model = DLA([1, 1, 1, 2, 2, 1],
                 [16, 32, 64, 128, 256, 512],
                 block=BasicBlock, **kwargs)
@@ -317,13 +478,32 @@ def dla34(pretrained=True, **kwargs):  # DLA-34
 class Identity(nn.Module):
 
     def __init__(self):
+        """
+        Stub
+
+        Args:
+            self: (todo): write your description
+        """
         super(Identity, self).__init__()
 
     def forward(self, x):
+        """
+        Forward function.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         return x
 
 
 def fill_fc_weights(layers):
+    """
+    Fill the weights of all layers.
+
+    Args:
+        layers: (todo): write your description
+    """
     for m in layers.modules():
         if isinstance(m, nn.Conv2d):
             if m.bias is not None:
@@ -331,6 +511,12 @@ def fill_fc_weights(layers):
 
 
 def fill_up_weights(up):
+    """
+    Fill up up the weight.
+
+    Args:
+        up: (array): write your description
+    """
     w = up.weight.data
     f = math.ceil(w.size(2) / 2)
     c = (2 * f - 1 - f % 2) / (2. * f)
@@ -344,6 +530,14 @@ def fill_up_weights(up):
 
 class DeformConv(nn.Module):
     def __init__(self, chi, cho):
+        """
+        Initialize the convolution.
+
+        Args:
+            self: (todo): write your description
+            chi: (todo): write your description
+            cho: (todo): write your description
+        """
         super(DeformConv, self).__init__()
         self.actf = nn.Sequential(
             nn.BatchNorm2d(cho, momentum=BN_MOMENTUM),
@@ -352,6 +546,13 @@ class DeformConv(nn.Module):
         self.conv = DCN(chi, cho, kernel_size=(3,3), stride=1, padding=1, dilation=1, deformable_groups=1)
 
     def forward(self, x):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         x = self.conv(x)
         x = self.actf(x)
         return x
@@ -360,6 +561,15 @@ class DeformConv(nn.Module):
 class IDAUp(nn.Module):
 
     def __init__(self, o, channels, up_f):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            o: (int): write your description
+            channels: (list): write your description
+            up_f: (float): write your description
+        """
         super(IDAUp, self).__init__()
         for i in range(1, len(channels)):
             c = channels[i]
@@ -378,6 +588,15 @@ class IDAUp(nn.Module):
                  
         
     def forward(self, layers, startp, endp):
+        """
+        Forward forward.
+
+        Args:
+            self: (todo): write your description
+            layers: (todo): write your description
+            startp: (todo): write your description
+            endp: (todo): write your description
+        """
         for i in range(startp + 1, endp):
             upsample = getattr(self, 'up_' + str(i - startp))
             project = getattr(self, 'proj_' + str(i - startp))
@@ -389,6 +608,16 @@ class IDAUp(nn.Module):
 
 class DLAUp(nn.Module):
     def __init__(self, startp, channels, scales, in_channels=None):
+        """
+        Initialize the channel.
+
+        Args:
+            self: (todo): write your description
+            startp: (todo): write your description
+            channels: (list): write your description
+            scales: (str): write your description
+            in_channels: (int): write your description
+        """
         super(DLAUp, self).__init__()
         self.startp = startp
         if in_channels is None:
@@ -405,6 +634,13 @@ class DLAUp(nn.Module):
             in_channels[j + 1:] = [channels[j] for _ in channels[j + 1:]]
 
     def forward(self, layers):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            layers: (todo): write your description
+        """
         out = [layers[-1]] # start with 32
         for i in range(len(layers) - self.startp - 1):
             ida = getattr(self, 'ida_{}'.format(i))
@@ -415,11 +651,26 @@ class DLAUp(nn.Module):
 
 class Interpolate(nn.Module):
     def __init__(self, scale, mode):
+        """
+        Initialize the scaling.
+
+        Args:
+            self: (todo): write your description
+            scale: (float): write your description
+            mode: (todo): write your description
+        """
         super(Interpolate, self).__init__()
         self.scale = scale
         self.mode = mode
         
     def forward(self, x):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         x = F.interpolate(x, scale_factor=self.scale, mode=self.mode, align_corners=False)
         return x
 
@@ -427,6 +678,20 @@ class Interpolate(nn.Module):
 class DLASeg(nn.Module):
     def __init__(self, base_name, heads, pretrained, down_ratio, final_kernel,
                  last_level, head_conv, out_channel=0):
+        """
+        Initialize the channel.
+
+        Args:
+            self: (todo): write your description
+            base_name: (str): write your description
+            heads: (todo): write your description
+            pretrained: (bool): write your description
+            down_ratio: (todo): write your description
+            final_kernel: (str): write your description
+            last_level: (int): write your description
+            head_conv: (todo): write your description
+            out_channel: (str): write your description
+        """
         super(DLASeg, self).__init__()
         assert down_ratio in [2, 4, 8, 16]
         self.first_level = int(np.log2(down_ratio))
@@ -478,6 +743,13 @@ class DLASeg(nn.Module):
             self.__setattr__(head, fc)
 
     def forward(self, x):
+        """
+        Forward forward forward algorithm.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         x = self.base(x)
         x = self.dla_up(x)
 
@@ -498,6 +770,15 @@ class DLASeg(nn.Module):
     
 
 def get_pose_net_glob_3level(num_layers, heads, head_conv=256, down_ratio=4):
+    """
+    Get a fermip network.
+
+    Args:
+        num_layers: (int): write your description
+        heads: (list): write your description
+        head_conv: (todo): write your description
+        down_ratio: (str): write your description
+    """
   model = DLASeg('dla{}'.format(num_layers), heads,
                  pretrained=True,
                  down_ratio=down_ratio,
