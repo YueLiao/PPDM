@@ -2,6 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from abc import ABCMeta
+
 import time
 import torch
 from progress.bar import Bar
@@ -21,7 +23,7 @@ class ModelWithLoss(torch.nn.Module):
         return outputs[-1], loss, loss_stats
 
 
-class BaseTrainer(object):
+class BaseTrainer(metaclass=ABCMeta):
     def __init__(self, opt, model, optimizer=None):
         self.opt = opt
         self.optimizer = optimizer
