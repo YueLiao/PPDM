@@ -69,8 +69,6 @@ class HoidetLoss(torch.nn.Module):
 
 
 class HoidetTrainer(BaseTrainer):
-    def __init__(self, opt, model, optimizer=None):
-        super(HoidetTrainer, self).__init__(opt, model, optimizer=optimizer)
 
     def _get_losses(self, opt):
         loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss', 'sub_offset_loss',
