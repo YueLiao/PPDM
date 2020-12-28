@@ -5,5 +5,5 @@ from __future__ import print_function
 from .hoidet import HoidetTrainer
 
 train_factory = {
-  'hoidet': HoidetTrainer
+    'hoidet': HoidetTrainer
 }

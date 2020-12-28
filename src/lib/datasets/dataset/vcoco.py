@@ -11,13 +11,16 @@ from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
 
 import math
 
+
 def xywh_to_xyxy(boxes):
-  """Convert [x y w h] box format to [x1 y1 x2 y2] format."""
-  return np.hstack((boxes[:, 0:2], boxes[:, 0:2] + boxes[:, 2:4] - 1))
+    """Convert [x y w h] box format to [x1 y1 x2 y2] format."""
+    return np.hstack((boxes[:, 0:2], boxes[:, 0:2] + boxes[:, 2:4] - 1))
+
 
 def xyxy_to_xywh(boxes):
-  """Convert [x1 y1 x2 y2] box format to [x y w h] format."""
-  return np.hstack((boxes[:, 0:2], boxes[:, 2:4] - boxes[:, 0:2] + 1))
+    """Convert [x1 y1 x2 y2] box format to [x y w h] format."""
+    return np.hstack((boxes[:, 0:2], boxes[:, 2:4] - boxes[:, 0:2] + 1))
+
 
 class VCOCO(Dataset):
     num_classes = 80
@@ -27,7 +30,8 @@ class VCOCO(Dataset):
                     dtype=np.float32).reshape(1, 1, 3)
     std = np.array([0.28863828, 0.27408164, 0.27809835],
                    dtype=np.float32).reshape(1, 1, 3)
-    def __init__(self,  opt, split = 'train', resize_keep_ratio=False, multiscale_mode='value'):
+
+    def __init__(self, opt, split='train', resize_keep_ratio=False, multiscale_mode='value'):
         self.opt = opt
         self.root = os.path.join(self.opt.root_path, 'verbcoco')
         self.image_dir = self.opt.image_dir
@@ -59,7 +63,8 @@ class VCOCO(Dataset):
                 58, 59, 60, 61, 62, 63, 64, 65, 67, 70,
                 72, 73, 74, 75, 76, 77, 78, 79, 80, 81,
                 82, 84, 85, 86, 87, 88, 89, 90]
-            self._valid_ids_verb = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 28]
+            self._valid_ids_verb = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25,
+                                    26, 28]
 
             self.cat_ids = {v: i for i, v in enumerate(self._valid_ids)}
 

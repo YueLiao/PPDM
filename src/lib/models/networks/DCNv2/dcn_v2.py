@@ -11,6 +11,7 @@ from torch.nn.modules.utils import _pair
 from .dcn_v2_func import DCNv2Function
 from .dcn_v2_func import DCNv2PoolingFunction
 
+
 class DCNv2(nn.Module):
 
     def __init__(self, in_channels, out_channels,
@@ -91,19 +92,19 @@ class DCNv2Pooling(nn.Module):
         self.sample_per_part = sample_per_part
         self.trans_std = trans_std
         self.func = DCNv2PoolingFunction(self.spatial_scale,
-                             self.pooled_size,
-                             self.output_dim,
-                             self.no_trans,
-                             self.group_size,
-                             self.part_size,
-                             self.sample_per_part,
-                             self.trans_std)
+                                         self.pooled_size,
+                                         self.output_dim,
+                                         self.no_trans,
+                                         self.group_size,
+                                         self.part_size,
+                                         self.sample_per_part,
+                                         self.trans_std)
 
     def forward(self, data, rois, offset):
-
         if self.no_trans:
             offset = data.new()
         return self.func(data, rois, offset)
+
 
 class DCNPooling(DCNv2Pooling):
 

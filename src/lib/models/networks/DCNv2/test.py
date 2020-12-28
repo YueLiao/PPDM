@@ -18,29 +18,31 @@ N, inC, inH, inW = 2, 2, 4, 4
 outC = 2
 kH, kW = 3, 3
 
+
 def conv_identify(weight, bias):
     weight.data.zero_()
     bias.data.zero_()
     o, i, h, w = weight.shape
-    y = h//2
-    x = w//2
+    y = h // 2
+    x = w // 2
     for p in range(i):
         for q in range(o):
             if p == q:
                 weight.data[q, p, y, x] = 1.0
 
+
 def check_zero_offset():
     conv_offset = nn.Conv2d(inC, deformable_groups * 2 * kH * kW,
-        kernel_size=(kH, kW),
-        stride=(1, 1),
-        padding=(1, 1),
-        bias=True).cuda()
+                            kernel_size=(kH, kW),
+                            stride=(1, 1),
+                            padding=(1, 1),
+                            bias=True).cuda()
 
     conv_mask = nn.Conv2d(inC, deformable_groups * 1 * kH * kW,
-        kernel_size=(kH, kW),
-        stride=(1, 1),
-        padding=(1, 1),
-        bias=True).cuda()
+                          kernel_size=(kH, kW),
+                          stride=(1, 1),
+                          padding=(1, 1),
+                          bias=True).cuda()
 
     dcn_v2 = DCNv2(inC, outC, (kH, kW),
                    stride=1, padding=1, dilation=1,
@@ -64,8 +66,8 @@ def check_zero_offset():
     else:
         print('Zero offset failed')
 
-def check_gradient_dconv_double():
 
+def check_gradient_dconv_double():
     input = torch.randn(N, inC, inH, inW, dtype=torch.float64).cuda()
     input.requires_grad = True
 
@@ -89,8 +91,8 @@ def check_gradient_dconv_double():
 
     print(gradcheck(func, (input, offset, mask, weight, bias), eps=1e-6, atol=1e-5, rtol=1e-3))
 
-def check_gradient_dconv():
 
+def check_gradient_dconv():
     input = torch.randn(N, inC, inH, inW).cuda()
     input.requires_grad = True
 
@@ -113,6 +115,7 @@ def check_gradient_dconv():
     func = DCNv2Function(stride=1, padding=1, dilation=1, deformable_groups=deformable_groups)
 
     print(gradcheck(func, (input, offset, mask, weight, bias), eps=1e-3, atol=1e-3, rtol=1e-2))
+
 
 def check_pooling_zero_offset():
     from dcn_v2 import DCNv2Pooling
@@ -145,6 +148,7 @@ def check_pooling_zero_offset():
     s = ', '.join(['%f' % dout[i, :, :, :].mean().item() for i in range(rois.shape[0])])
     print(s)
 
+
 def check_gradient_dpooling():
     input = torch.randn(2, 3, 5, 5).cuda() * 0.01
     N = 4
@@ -170,13 +174,14 @@ def example_dconv():
     from dcn_v2 import DCN
     input = torch.randn(2, 64, 128, 128).cuda()
     # wrap all things (offset and mask) in DCN
-    dcn = DCN(64, 64, kernel_size=(3,3), stride=1, padding=1, deformable_groups=2).cuda()
+    dcn = DCN(64, 64, kernel_size=(3, 3), stride=1, padding=1, deformable_groups=2).cuda()
     output = dcn(input)
     targert = output.new(*output.size())
     targert.data.uniform_(-0.01, 0.01)
     error = (targert - output).mean()
     error.backward()
     print(output.shape)
+
 
 def example_dpooling():
     from dcn_v2 import DCNv2Pooling
@@ -221,6 +226,7 @@ def example_dpooling():
     e = (target_dout - dout).mean()
     e.backward()
 
+
 def example_mdpooling():
     from dcn_v2 import DCNPooling
     input = torch.randn(2, 32, 64, 64).cuda()
@@ -234,11 +240,11 @@ def example_mdpooling():
 
     # mdformable pooling (V2)
     dpooling = DCNPooling(spatial_scale=1.0 / 4,
-                         pooled_size=7,
-                         output_dim=32,
-                         no_trans=False,
-                         group_size=1,
-                         trans_std=0.1).cuda()
+                          pooled_size=7,
+                          output_dim=32,
+                          no_trans=False,
+                          group_size=1,
+                          trans_std=0.1).cuda()
 
     dout = dpooling(input, rois)
     target = dout.new(*dout.size())
@@ -246,6 +252,7 @@ def example_mdpooling():
     error = (target - dout).mean()
     error.backward()
     print(dout.shape)
+
 
 if __name__ == '__main__':
 

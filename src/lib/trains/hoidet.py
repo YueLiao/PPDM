@@ -36,9 +36,9 @@ class HoidetLoss(torch.nn.Module):
                 if opt.dense_wh:
                     mask_weight = batch['dense_wh_mask'].sum() + 1e-4
                     wh_loss += (
-                                       self.crit_wh(output['wh'] * batch['dense_wh_mask'],
-                                                    batch['dense_wh'] * batch['dense_wh_mask']) /
-                                       mask_weight) / opt.num_stacks
+                                   self.crit_wh(output['wh'] * batch['dense_wh_mask'],
+                                                batch['dense_wh'] * batch['dense_wh_mask']) /
+                                   mask_weight) / opt.num_stacks
                 elif opt.cat_spec_wh:
                     wh_loss += self.crit_wh(
                         output['wh'], batch['cat_spec_mask'],
@@ -60,7 +60,7 @@ class HoidetLoss(torch.nn.Module):
                                           batch['ind'], batch['reg']) / opt.num_stacks
 
         loss = opt.hm_weight * (hm_loss + hm_rel_loss) + opt.wh_weight * (
-                    wh_loss + sub_offset_loss + obj_offset_loss) + \
+            wh_loss + sub_offset_loss + obj_offset_loss) + \
                opt.off_weight * off_loss
         loss_stats = {'loss': loss, 'hm_loss': hm_loss,
                       'wh_loss': wh_loss, 'off_loss': off_loss, 'hm_rel_loss': hm_rel_loss,

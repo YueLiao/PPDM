@@ -2,7 +2,6 @@ import os
 import torch
 from torch.utils.ffi import create_extension
 
-
 sources = ['src/dcn_v2.c']
 headers = ['src/dcn_v2.h']
 defines = []
