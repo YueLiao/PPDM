@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 import time
 import torch
@@ -105,8 +105,9 @@ class BaseTrainer(metaclass=ABCMeta):
     def save_result(self, output, batch, results):
         raise NotImplementedError
 
+    @abstractmethod
     def _get_losses(self, opt):
-        raise NotImplementedError
+        pass
 
     def val(self, epoch, data_loader):
         return self.run_epoch('val', epoch, data_loader)
