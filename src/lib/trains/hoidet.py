@@ -88,8 +88,10 @@ class HoidetTrainer(object):
     def __init__(self, opt, model, optimizer=None):
         self.opt = opt
         self.optimizer = optimizer
-        self.loss, self.loss_states = self._get_losses(opt)
-        self.model_with_loss = ModelWithLoss(model, self.loss)
+        loss = HoidetLoss(opt)
+        self.loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss',
+                            'sub_offset_loss', 'obj_offset_loss']
+        self.model_with_loss = ModelWithLoss(model, loss)
 
     def set_device(self, gpus, chunk_sizes, device):
         if len(gpus) > 1:
@@ -104,16 +106,7 @@ class HoidetTrainer(object):
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(device=device, non_blocking=True)
 
-    def run_epoch(self, phase, epoch, data_loader):
-        model_with_loss = self.model_with_loss
-        if phase == 'train':
-            model_with_loss.train()
-        else:
-            if len(self.opt.gpus) > 1:
-                model_with_loss = self.model_with_loss.module
-            model_with_loss.eval()
-            torch.cuda.empty_cache()
-
+    def run_epoch(self, model_with_loss, epoch, data_loader, phase='train'):
         opt = self.opt
         results = {}
         data_time, batch_time = AverageMeter(), AverageMeter()
@@ -154,8 +147,6 @@ class HoidetTrainer(object):
             else:
                 bar.next()
 
-            if opt.test:
-                self.save_result(output, batch, results)
             del output, loss, loss_states
 
         bar.finish()
@@ -163,17 +154,16 @@ class HoidetTrainer(object):
         ret['time'] = bar.elapsed_td.total_seconds() / 60.
         return ret, results
 
-    def save_result(self, output, batch, results):
-        raise NotImplementedError
-
-    def _get_losses(self, opt):
-        loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss', 'sub_offset_loss',
-                       'obj_offset_loss']
-        loss = HoidetLoss(opt)
-        return loss, loss_states
+    def train(self, epoch, data_loader):
+        model_with_loss = self.model_with_loss
+        model_with_loss.train()
+        ret, results = self.run_epoch(model_with_loss, epoch, data_loader)
+        return ret, results
 
     def val(self, epoch, data_loader):
-        return self.run_epoch('val', epoch, data_loader)
-
-    def train(self, epoch, data_loader):
-        return self.run_epoch('train', epoch, data_loader)
+        model_with_loss = self.model_with_loss
+        model_with_loss.eval()
+        torch.cuda.empty_cache()
+        with torch.no_grad:
+            ret, results = self.run_epoch(model_with_loss, epoch, data_loader, phase='val')
+        return ret, results
