@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import torch
-from . import networks
+import networks
 
 
 def create_model(arch, heads, head_conv):
