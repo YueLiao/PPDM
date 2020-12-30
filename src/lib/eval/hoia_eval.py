@@ -2,12 +2,13 @@ import json
 import numpy as np
 import os
 
+
 class hoia():
     def __init__(self, annotation_file):
         self.annotations = json.load(open(annotation_file, 'r'))
         self.overlap_iou = 0.5
         self.verb_name_dict = {1: 'smoke', 2: 'call', 3: 'play(cellphone)', 4: 'eat', 5: 'drink',
-                            6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
+                               6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
         self.fp = {}
         self.tp = {}
         self.score = {}
@@ -63,8 +64,8 @@ class hoia():
             tp = np.cumsum(tp)
             rec = tp / sum_gt
             prec = tp / (fp + tp)
-            ap[i - 1] = self.voc_ap(rec,prec)
-            max_recall[i-1] = np.max(rec)
+            ap[i - 1] = self.voc_ap(rec, prec)
+            max_recall[i - 1] = np.max(rec)
             # print('class {} --- ap: {}   max recall: {}'.format(
             #     i, ap[i-1], max_recall[i-1]))
         mAP = np.mean(ap[:])
@@ -92,13 +93,15 @@ class hoia():
                 is_match = 0
                 if isinstance(pred_hoi_i['category_id'], str):
                     pred_hoi_i['category_id'] = int(pred_hoi_i['category_id'].replace('\n', ''))
-                if len(match_pairs) != 0 and pred_hoi_i['subject_id'] in pos_pred_ids and pred_hoi_i['object_id'] in pos_pred_ids:
+                if len(match_pairs) != 0 and pred_hoi_i['subject_id'] in pos_pred_ids and pred_hoi_i[
+                    'object_id'] in pos_pred_ids:
                     pred_sub_ids = match_pairs[pred_hoi_i['subject_id']]
                     pred_obj_ids = match_pairs[pred_hoi_i['object_id']]
                     pred_category_id = pred_hoi_i['category_id']
                     for gt_id in np.nonzero(1 - vis_tag)[0]:
                         gt_hoi_i = gt_hoi[gt_id]
-                        if (gt_hoi_i['subject_id'] in pred_sub_ids) and (gt_hoi_i['object_id'] in pred_obj_ids) and (pred_category_id == gt_hoi_i['category_id']):
+                        if (gt_hoi_i['subject_id'] in pred_sub_ids) and (gt_hoi_i['object_id'] in pred_obj_ids) and (
+                            pred_category_id == gt_hoi_i['category_id']):
                             is_match = 1
                             vis_tag[gt_id] = 1
                             continue
@@ -121,8 +124,8 @@ class hoia():
             for j, bbox2 in enumerate(bbox_list2):
                 iou_i = self.compute_IOU(bbox1, bbox2)
                 iou_mat[i, j] = iou_i
-        iou_mat[iou_mat>= self.overlap_iou] = 1
-        iou_mat[iou_mat< self.overlap_iou] = 0
+        iou_mat[iou_mat >= self.overlap_iou] = 1
+        iou_mat[iou_mat < self.overlap_iou] = 0
 
         match_pairs = np.nonzero(iou_mat)
         match_pairs_dict = {}

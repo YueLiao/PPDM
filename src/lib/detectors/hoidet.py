@@ -12,12 +12,13 @@ from utils.post_process import ctdet_post_process
 from .base_detector import BaseDetector
 import os
 
+
 class HoidetDetector(BaseDetector):
     def __init__(self, opt):
         super(HoidetDetector, self).__init__(opt)
         self.opt = opt
         if 'hico' in self.opt.dataset:
-            self.corre_mat = np.load(os.path.join(self.opt.root_path,'hico_det/annotations/corre_hico.npy'))
+            self.corre_mat = np.load(os.path.join(self.opt.root_path, 'hico_det/annotations/corre_hico.npy'))
         elif 'vcoco' in opt.dataset:
             self.corre_mat = np.load(os.path.join(self.opt.root_path, 'verbcoco/annotations/corre_vcoco.npy'))
         elif 'hoia' in opt.dataset:
@@ -25,6 +26,7 @@ class HoidetDetector(BaseDetector):
         self.triplet_labels = np.nonzero(self.corre_mat)
         self.triplet_labels = list(zip(self.triplet_labels[0], self.triplet_labels[1]))
         self.corre_mat = torch.tensor(self.corre_mat).float().cuda()
+
     def process(self, images, return_time=False):
 
         with torch.no_grad():
@@ -70,26 +72,26 @@ class HoidetDetector(BaseDetector):
         w = c[1] * 2
         if 'hico' in self.opt.dataset or 'vcoco' in self.opt.dataset:
             obj_cate_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13,
-                         14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-                         24, 25, 27, 28, 31, 32, 33, 34, 35, 36,
-                         37, 38, 39, 40, 41, 42, 43, 44, 46, 47,
-                         48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
-                         58, 59, 60, 61, 62, 63, 64, 65, 67, 70,
-                         72, 73, 74, 75, 76, 77, 78, 79, 80, 81,
-                         82, 84, 85, 86, 87, 88, 89, 90]
+                            14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+                            24, 25, 27, 28, 31, 32, 33, 34, 35, 36,
+                            37, 38, 39, 40, 41, 42, 43, 44, 46, 47,
+                            48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+                            58, 59, 60, 61, 62, 63, 64, 65, 67, 70,
+                            72, 73, 74, 75, 76, 77, 78, 79, 80, 81,
+                            82, 84, 85, 86, 87, 88, 89, 90]
         if 'hico' in self.opt.dataset:
             verb_cate_ids = list(range(118))
             verb_cate_ids.remove(0)
         elif 'vcoco' in self.opt.dataset:
             verb_cate_ids = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 28]
         if 'hoia' in self.opt.dataset:
-            obj_cate_ids= list(range(1, 12))
+            obj_cate_ids = list(range(1, 12))
             verb_cate_ids = list(range(1, 11))
         for i in range(rel.shape[0]):
             rel_i = rel[i, :]
             sub_id = int(rel_i[0])
             obj_id = int(rel_i[1])
-            if (int(rel_i[2]),int(det_obj[0,obj_id,-1])) not in self.triplet_labels:
+            if (int(rel_i[2]), int(det_obj[0, obj_id, -1])) not in self.triplet_labels:
                 continue
             if sub_id not in sub_match_dict.keys():
                 sub_match_dict[sub_id] = count
@@ -115,4 +117,3 @@ class HoidetDetector(BaseDetector):
             output['hoi_prediction'].append({'subject_id': sub_match_dict[sub_id], 'object_id': obj_match_dict[obj_id],
                                              'category_id': verb_cate_ids[int(rel_i[2])], 'score': rel_i[3]})
         return output
-

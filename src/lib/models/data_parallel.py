@@ -4,8 +4,8 @@ from torch.nn.parallel.scatter_gather import gather
 from torch.nn.parallel.replicate import replicate
 from torch.nn.parallel.parallel_apply import parallel_apply
 
-
 from .scatter_gather import scatter_kwargs
+
 
 class _DataParallel(Module):
     r"""Implements data parallelism at the module level.
@@ -115,6 +115,7 @@ def data_parallel(module, inputs, device_ids=None, output_device=None, dim=0, mo
     replicas = replicate(module, used_device_ids)
     outputs = parallel_apply(replicas, inputs, module_kwargs, used_device_ids)
     return gather(outputs, output_device, dim)
+
 
 def DataParallel(module, device_ids=None, output_device=None, dim=0, chunk_sizes=None):
     if chunk_sizes is None:

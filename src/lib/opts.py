@@ -121,9 +121,9 @@ class opts(object):
                                  help='do evaluation when testing')
         self.parser.add_argument('--test_video', action='store_true',
                                  help='inference with a video')
-        self.parser.add_argument('--test_dir', type=str,default='',
+        self.parser.add_argument('--test_dir', type=str, default='',
                                  help='the video path')
-        self.parser.add_argument('--save_video', type=str,default='',
+        self.parser.add_argument('--save_video', type=str, default='',
                                  help='the video save path')
 
         # dataset
@@ -144,7 +144,6 @@ class opts(object):
         self.parser.add_argument('--no_color_aug', action='store_true',
                                  help='not use the color augmenation '
                                       'from CornerNet')
-
 
         # loss
         self.parser.add_argument('--mse_loss', action='store_true',
@@ -251,7 +250,6 @@ class opts(object):
         opt.input_res = max(opt.input_h, opt.input_w)
         opt.output_res = max(opt.output_h, opt.output_w)
 
-
         if opt.task == 'hoidet':
             assert opt.dataset in ['hico', 'vcoco', 'hoia']
             opt.heads = {'hm': opt.num_classes,
@@ -269,8 +267,8 @@ class opts(object):
     def init(self, args=''):
         default_dataset_info = {
             'hoidet': {'default_resolution': [512, 512], 'num_classes': 80,
-                  'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
-                  'dataset': 'hico', 'num_classes_verb': 117}
+                       'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
+                       'dataset': 'hico', 'num_classes_verb': 117}
         }
 
         class Struct:

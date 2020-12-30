@@ -5,5 +5,5 @@ from __future__ import print_function
 from .hoidet import HoidetDetector
 
 detector_factory = {
-  'hoidet': HoidetDetector,
+    'hoidet': HoidetDetector,
 }

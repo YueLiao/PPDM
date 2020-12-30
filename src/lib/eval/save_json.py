@@ -1,5 +1,7 @@
 import json, os
 import numpy as np
+
+
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -12,6 +14,7 @@ class MyEncoder(json.JSONEncoder):
             return obj.tolist()
         else:
             return super(MyEncoder, self).default(obj)
+
 
 def save_json(annot_file, out_dir, filename):
     with open(os.path.join(out_dir, filename), 'w') as outfile:

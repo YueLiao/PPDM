@@ -10,13 +10,16 @@ from utils.image import get_affine_transform, affine_transform
 from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
 import math
 
+
 def xywh_to_xyxy(boxes):
-  """Convert [x y w h] box format to [x1 y1 x2 y2] format."""
-  return np.hstack((boxes[:, 0:2], boxes[:, 0:2] + boxes[:, 2:4] - 1))
+    """Convert [x y w h] box format to [x1 y1 x2 y2] format."""
+    return np.hstack((boxes[:, 0:2], boxes[:, 0:2] + boxes[:, 2:4] - 1))
+
 
 def xyxy_to_xywh(boxes):
-  """Convert [x1 y1 x2 y2] box format to [x y w h] format."""
-  return np.hstack((boxes[:, 0:2], boxes[:, 2:4] - boxes[:, 0:2] + 1))
+    """Convert [x1 y1 x2 y2] box format to [x y w h] format."""
+    return np.hstack((boxes[:, 0:2], boxes[:, 2:4] - boxes[:, 0:2] + 1))
+
 
 class HICO(Dataset):
     num_classes = 80
@@ -26,7 +29,8 @@ class HICO(Dataset):
                     dtype=np.float32).reshape(1, 1, 3)
     std = np.array([0.28863828, 0.27408164, 0.27809835],
                    dtype=np.float32).reshape(1, 1, 3)
-    def __init__(self,  opt, split = 'train', resize_keep_ratio=False, multiscale_mode='value'):
+
+    def __init__(self, opt, split='train', resize_keep_ratio=False, multiscale_mode='value'):
         self.opt = opt
         self.root = os.path.join(self.opt.root_path, 'hico_det')
         self.image_dir = self.opt.image_dir
@@ -84,7 +88,6 @@ class HICO(Dataset):
         else:
             self.hoi_annotations = json.load(open(os.path.join(self.root, 'annotations', 'test_hico.json'), 'r'))
             self.ids = list(range(len(self.hoi_annotations)))
-
 
     def _get_border(self, border, size):
         i = 1
@@ -155,7 +158,7 @@ class HICO(Dataset):
         trans_output = get_affine_transform(c, s, 0, [output_w, output_h])
 
         hm = np.zeros((num_classes, output_h, output_w), dtype=np.float32)
-        hm_rel = np.zeros((self.num_classes_verb, output_h, output_w), dtype = np.float32)
+        hm_rel = np.zeros((self.num_classes_verb, output_h, output_w), dtype=np.float32)
         wh = np.zeros((self.max_objs, 2), dtype=np.float32)
         reg = np.zeros((self.max_objs, 2), dtype=np.float32)
         ind = np.zeros((self.max_objs), dtype=np.int64)
@@ -163,7 +166,6 @@ class HICO(Dataset):
 
         sub_offset = np.zeros((self.max_rels, 2), dtype=np.float32)
         obj_offset = np.zeros((self.max_rels, 2), dtype=np.float32)
-
 
         draw_gaussian = draw_msra_gaussian if self.opt.mse_loss else \
             draw_umich_gaussian
@@ -176,7 +178,7 @@ class HICO(Dataset):
             ann = anns[k]
             bbox = np.asarray(ann['bbox'])
             if isinstance(ann['category_id'], str):
-                ann['category_id'] =  int(ann['category_id'].replace('\n', ''))
+                ann['category_id'] = int(ann['category_id'].replace('\n', ''))
             cls_id = int(self.cat_ids[ann['category_id']])
             if flipped:
                 bbox[[0, 2]] = width - bbox[[2, 0]] - 1
@@ -185,7 +187,6 @@ class HICO(Dataset):
             bbox[[0, 2]] = np.clip(bbox[[0, 2]], 0, output_w - 1)
             bbox[[1, 3]] = np.clip(bbox[[1, 3]], 0, output_h - 1)
             h, w = bbox[3] - bbox[1], bbox[2] - bbox[0]
-
 
             ct = np.array(
                 [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
@@ -202,11 +203,8 @@ class HICO(Dataset):
                 reg_mask[k] = 1
                 draw_gaussian(hm[cls_id], ct_int, radius)
 
-
                 gt_det.append([ct[0] - w / 2, ct[1] - h / 2,
                                ct[0] + w / 2, ct[1] + h / 2, 1, cls_id])
-
-
 
         offset_mask = np.zeros((self.max_rels), dtype=np.uint8)
         rel_ind = np.zeros((self.max_rels), dtype=np.int64)
@@ -227,13 +225,13 @@ class HICO(Dataset):
             draw_gaussian(hm_rel[hoi_cate], rel_ct_int, radius)
             rel_sub_offset = np.array([rel_ct_int[0] - sub_ct[0], rel_ct_int[1] - sub_ct[1]], dtype=np.float32)
             rel_obj_offset = np.array([rel_ct_int[0] - obj_ct[0], rel_ct_int[1] - obj_ct[1]], dtype=np.float32)
-            sub_offset[k] = 1.* rel_sub_offset[0], 1.*rel_sub_offset[1]
-            obj_offset[k] = 1.* rel_obj_offset[0], 1.*rel_obj_offset[1]
+            sub_offset[k] = 1. * rel_sub_offset[0], 1. * rel_sub_offset[1]
+            obj_offset[k] = 1. * rel_obj_offset[0], 1. * rel_obj_offset[1]
             rel_ind[k] = rel_ct_int[1] * output_w + rel_ct_int[0]
 
-
         ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh,
-               'hm_rel': hm_rel, 'sub_offset': sub_offset, 'obj_offset': obj_offset, 'offset_mask': offset_mask, 'rel_ind': rel_ind}
+               'hm_rel': hm_rel, 'sub_offset': sub_offset, 'obj_offset': obj_offset, 'offset_mask': offset_mask,
+               'rel_ind': rel_ind}
         if self.opt.reg_offset:
             ret.update({'reg': reg})
         return ret

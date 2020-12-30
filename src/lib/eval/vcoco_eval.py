@@ -2,16 +2,24 @@ import json
 import numpy as np
 import os
 
+
 class vcoco():
     def __init__(self, annotation_file):
         self.annotations = json.load(open(annotation_file, 'r'))
         self.overlap_iou = 0.5
-        self.verb_name_list = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 28]
+        self.verb_name_list = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26,
+                               28]
         self.fp = {}
         self.tp = {}
         self.score = {}
         self.sum_gt = {}
-        self.verb_name_dict = {2: 'cut_instr', 21: 'snowboard_instr', 4: 'cut_obj', 0: 'surf_instr', 26: 'skateboard_instr', 7: 'kick_obj', 9: 'eat_obj', 14: 'carry_obj', 15: 'throw_obj', 16: 'eat_instr', 17: 'smile', 18: 'look_obj', 19: 'hit_instr', 20: 'hit_obj', 1: 'ski_instr', 22: 'run', 10: 'sit_instr', 24: 'read_obj', 5: 'ride_instr', 3: 'walk', 23: 'point_instr', 11: 'jump_instr', 8: 'work_on_computer_instr', 25: 'hold_obj', 13: 'drink_instr', 12: 'lay_instr', 6: 'talk_on_phone_instr', 27: 'stand', 28: 'catch_obj'}
+        self.verb_name_dict = {2: 'cut_instr', 21: 'snowboard_instr', 4: 'cut_obj', 0: 'surf_instr',
+                               26: 'skateboard_instr', 7: 'kick_obj', 9: 'eat_obj', 14: 'carry_obj', 15: 'throw_obj',
+                               16: 'eat_instr', 17: 'smile', 18: 'look_obj', 19: 'hit_instr', 20: 'hit_obj',
+                               1: 'ski_instr', 22: 'run', 10: 'sit_instr', 24: 'read_obj', 5: 'ride_instr', 3: 'walk',
+                               23: 'point_instr', 11: 'jump_instr', 8: 'work_on_computer_instr', 25: 'hold_obj',
+                               13: 'drink_instr', 12: 'lay_instr', 6: 'talk_on_phone_instr', 27: 'stand',
+                               28: 'catch_obj'}
         for i in self.verb_name_list:
             self.fp[i] = []
             self.tp[i] = []
@@ -79,7 +87,7 @@ class vcoco():
             tp = np.cumsum(tp)
             rec = tp / sum_gt
             prec = tp / (fp + tp)
-            ap[i] = self.voc_ap(rec,prec)
+            ap[i] = self.voc_ap(rec, prec)
             max_recall[i] = np.max(rec)
         #    print('class {} --- ap: {}   max recall: {}  pos: {}'.format(self.verb_name_dict[self.verb_name_list[i]], ap[i], max_recall[i], sum_gt))
         mAP = np.mean(ap[:])
@@ -108,13 +116,15 @@ class vcoco():
                 is_match = 0
                 if isinstance(pred_hoi_i['category_id'], str):
                     pred_hoi_i['category_id'] = int(pred_hoi_i['category_id'].replace('\n', ''))
-                if len(match_pairs) != 0 and pred_hoi_i['subject_id'] in pos_pred_ids and pred_hoi_i['object_id'] in pos_pred_ids:
+                if len(match_pairs) != 0 and pred_hoi_i['subject_id'] in pos_pred_ids and pred_hoi_i[
+                    'object_id'] in pos_pred_ids:
                     pred_sub_ids = match_pairs[pred_hoi_i['subject_id']]
                     pred_obj_ids = match_pairs[pred_hoi_i['object_id']]
                     pred_category_id = pred_hoi_i['category_id']
                     for gt_id in np.nonzero(1 - vis_tag)[0]:
                         gt_hoi_i = gt_hoi[gt_id]
-                        if (gt_hoi_i['subject_id'] in pred_sub_ids) and (gt_hoi_i['object_id'] in pred_obj_ids) and (pred_category_id == gt_hoi_i['category_id']):
+                        if (gt_hoi_i['subject_id'] in pred_sub_ids) and (gt_hoi_i['object_id'] in pred_obj_ids) and (
+                            pred_category_id == gt_hoi_i['category_id']):
                             is_match = 1
                             vis_tag[gt_id] = 1
                             continue
@@ -137,8 +147,8 @@ class vcoco():
             for j, bbox2 in enumerate(bbox_list2):
                 iou_i = self.compute_IOU(bbox1, bbox2)
                 iou_mat[i, j] = iou_i
-        iou_mat[iou_mat>= self.overlap_iou] = 1
-        iou_mat[iou_mat< self.overlap_iou] = 0
+        iou_mat[iou_mat >= self.overlap_iou] = 1
+        iou_mat[iou_mat < self.overlap_iou] = 0
 
         match_pairs = np.nonzero(iou_mat)
         match_pairs_dict = {}
@@ -175,5 +185,3 @@ class vcoco():
         else:
             intersect = (right_line - left_line) * (bottom_line - top_line)
             return intersect / (sum_area - intersect)
-
-
