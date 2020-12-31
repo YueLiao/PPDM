@@ -1,6 +1,6 @@
 # PPDM
 Code for our CVPR 2020 paper "[PPDM: Parallel Point Detection and Matching for Real-time Human-Object
-Interaction Detection](https://arxiv.org/pdf/1912.12898)".
+Interaction Detection](https://openaccess.thecvf.com/content_CVPR_2020/papers/Liao_PPDM_Parallel_Point_Detection_and_Matching_for_Real-Time_Human-Object_Interaction_CVPR_2020_paper.pdf)".
 
 Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people), Fei Wang, Yanjie Chen, Chen Qian, [Jiashi Feng](https://sites.google.com/site/jshfeng/).
 
@@ -132,10 +132,11 @@ Coming soon.
 Please consider citing this project in your publications if it helps your research. The following is a BibTeX reference. The BibTeX entry requires the url LaTeX package.
 
 ~~~
-@inproceedings{liao2019ppdm,
-  title={PPDM: Parallel Point Detection and Matching for Real-time Human-Object Interaction Detection},
+@inproceedings{liao2020ppdm,
+  title={Ppdm: Parallel point detection and matching for real-time human-object interaction detection},
   author={Liao, Yue and Liu, Si and Wang, Fei and Chen, Yanjie and Qian, Chen and Feng, Jiashi},
-  booktitle={CVPR},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={482--490},
   year={2020}
 }
 ~~~
