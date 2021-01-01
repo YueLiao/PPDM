@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from .pose_dla_dcn import *
+from .pose_dla_dcn import nn, DLAUp, IDAUp, GloRe, fill_fc_weights
 
 
 class DLASeg(nn.Module):
@@ -67,14 +67,14 @@ class DLASeg(nn.Module):
             y.append(x[i].clone())
         self.ida_up(y, 0, len(y))
 
-        z = {}
+        ret = {}
         glob_feat = self.glore(y[-1])
         for head in self.heads:
             if head in ['hm_rel', 'sub_offset', 'obj_offset']:
-                z[head] = self.__getattr__(head)(glob_feat)
+                ret[head] = self.__getattr__(head)(glob_feat)
             else:
-                z[head] = self.__getattr__(head)(y[-1])
-        return [z]
+                ret[head] = self.__getattr__(head)(y[-1])
+        return [ret]
 
 
 def get_pose_net_glob(num_layers, heads, head_conv=256, down_ratio=4):
