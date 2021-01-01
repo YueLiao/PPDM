@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from .pose_dla_dcn import *
+from .pose_dla_dcn import torch, nn, np, DLAUp, IDAUp, fill_fc_weights
 
 
 class DLASeg(nn.Module):
@@ -68,14 +68,14 @@ class DLASeg(nn.Module):
             y.append(x[i].clone())
         self.ida_up(y, 0, len(y))
 
-        z = {}
+        ret = {}
         y_cat = torch.cat((y), 1)
         for head in self.heads:
             if head in ['hm_rel', 'sub_offset', 'obj_offset']:
-                z[head] = self.__getattr__(head)(y_cat)
+                ret[head] = self.__getattr__(head)(y_cat)
             else:
-                z[head] = self.__getattr__(head)(y[-1])
-        return [z]
+                ret[head] = self.__getattr__(head)(y[-1])
+        return [ret]
 
 
 def get_pose_net_3level(num_layers, heads, head_conv=256, down_ratio=4):

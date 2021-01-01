@@ -380,10 +380,10 @@ class DLASeg(nn.Module):
             y.append(x[i].clone())
         self.ida_up(y, 0, len(y))
 
-        z = {}
+        ret = {}
         for head in self.heads:
-            z[head] = self.__getattr__(head)(y[-1])
-        return [z]
+            ret[head] = self.__getattr__(head)(y[-1])
+        return [ret]
 
 
 def get_pose_net(num_layers, heads, head_conv=256, down_ratio=4):
