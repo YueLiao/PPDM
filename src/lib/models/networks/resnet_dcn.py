@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 
-from .dcn import BN_MOMENTUM, fill_fc_weights, fill_up_weights, Bottleneck as _Bottleneck
+from .dcn import BN_MOMENTUM, fill_fc_weights, fill_up_weights, BasicBlock, Bottleneck as _Bottleneck
 from .DCNv2.dcn_v2 import DCN
 
 logger = logging.getLogger(__name__)
