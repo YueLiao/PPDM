@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 
-from .dcn import *
+from .dcn import BN_MOMENTUM, fill_fc_weights, fill_up_weights, Bottleneck as _Bottleneck
 from .DCNv2.dcn_v2 import DCN
 
 logger = logging.getLogger(__name__)
@@ -24,11 +24,10 @@ model_urls = {
 }
 
 
-class Bottleneck(nn.Module):
-    expansion = 4
-
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(Bottleneck, self).__init__()
+class Bottleneck(_Bottleneck):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, expansion=4):
+        super(Bottleneck, self).__init__(inplanes, planes)
+        self.expansion = expansion
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
@@ -41,28 +40,6 @@ class Bottleneck(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
-
-    def forward(self, x):
-        residual = x
-
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.relu(out)
-
-        out = self.conv3(out)
-        out = self.bn3(out)
-
-        if self.downsample is not None:
-            residual = self.downsample(x)
-
-        out += residual
-        out = self.relu(out)
-
-        return out
 
 
 class PoseResNet(nn.Module):
