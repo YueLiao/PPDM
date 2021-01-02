@@ -91,7 +91,7 @@ class vcoco():
             max_recall[i] = np.max(rec)
         #    print('class {} --- ap: {}   max recall: {}  pos: {}'.format(self.verb_name_dict[self.verb_name_list[i]], ap[i], max_recall[i], sum_gt))
         mAP = np.mean(ap[:])
-        mAP = (mAP - ap[20]) * 25 / 24
+        mAP = (mAP * 25 - ap[20]) / 24
         m_rec = np.mean(max_recall[:])
         print('--------------------')
         print('mAP: {}   max recall: {}'.format(mAP, m_rec))
