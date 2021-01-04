@@ -74,21 +74,21 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 
     ~~~
     cd src
-    python main.py  hoidet --batch_size 112 --master_batch 7 --lr 4.5e-4 --gpus 0,1,2,3,4,5,6,7  --num_workers 16  --load_model ../models/ctdet_coco_dla_2x.pth --image_dir images/train2015 --dataset hico --exp_id hoidet_hico_dla
+    python main.py  Hoidet --batch_size 112 --master_batch 7 --lr 4.5e-4 --gpus 0,1,2,3,4,5,6,7  --num_workers 16  --load_model ../models/ctdet_coco_dla_2x.pth --image_dir images/train2015 --dataset hico --exp_id hoidet_hico_dla
     ~~~
 ### Test
 1. Evalution by our rewritten script and select the best checkpoint. The scripts for evalution are put into `experiments` folder.  An example evalution on HICO-DET dataset as follow:
 
     ```
     cd src
-    python test_hoi.py hoidet --exp_id hoidet_hico_dla --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
+    python test_hoi.py Hoidet --exp_id hoidet_hico_dla --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
     ```
     
     or directly generating the predictions and evalutating for a certern checkpoint:
     
     ```
     cd src
-    python test_hoi.py hoidet --exp_id hoidet_hico_dla --load_model ../exp/hoidet/hoidet_hico_dla/model_140.pth --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
+    python test_hoi.py Hoidet --exp_id hoidet_hico_dla --load_model ../exp/Hoidet/hoidet_hico_dla/model_140.pth --gpus 0 --dataset hico --image_dir images/test2015 --test_with_eval
     ```
     
 2. For HICO-DET official evalution.

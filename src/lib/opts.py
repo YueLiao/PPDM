@@ -250,7 +250,7 @@ class opts(object):
         opt.input_res = max(opt.input_h, opt.input_w)
         opt.output_res = max(opt.output_h, opt.output_w)
 
-        if opt.task == 'hoidet':
+        if opt.task == 'Hoidet':
             assert opt.dataset in ['hico', 'vcoco', 'hoia']
             opt.heads = {'hm': opt.num_classes,
                          'wh': 2 if not opt.cat_spec_wh else 2 * opt.num_classes,
@@ -266,7 +266,7 @@ class opts(object):
 
     def init(self, args=''):
         default_dataset_info = {
-            'hoidet': {'default_resolution': [512, 512], 'num_classes': 80,
+            'Hoidet': {'default_resolution': [512, 512], 'num_classes': 80,
                        'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
                        'dataset': 'hico', 'num_classes_verb': 117}
         }

@@ -13,8 +13,8 @@ from eval.hoia_eval import hoia
 from opts import opts
 from logger import Logger
 from utils.utils import AverageMeter
-from detectors.detector_factory import detector_factory
-from datasets.dataset_factory import get_dataset
+from detectors import detectors
+from datasets import get_dataset
 from eval.save_json import save_json
 
 
@@ -48,7 +48,7 @@ def prefetch_test(opt):
     opt = opts().update_dataset_info_and_set_heads(opt, Dataset)
     print(opt)
     Logger(opt)
-    Detector = detector_factory[opt.task]
+    Detector = detectors[opt.task]
     dataset = Dataset(opt, 'test')
     model_begin = 100
     model_end = 140

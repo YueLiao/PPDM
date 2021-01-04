@@ -14,7 +14,7 @@ from opts import opts
 from models.model import create_model, load_model, save_model
 from models.data_parallel import DataParallel
 from logger import Logger
-from datasets.dataset_factory import get_dataset
+from datasets import get_dataset
 
 
 def main(opt):
