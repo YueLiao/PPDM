@@ -145,10 +145,6 @@ class opts(object):
                                  help='not use the color augmenation '
                                       'from CornerNet')
 
-        # loss
-        self.parser.add_argument('--mse_loss', action='store_true',
-                                 help='use mse loss or focal loss to train '
-                                      'keypoint heatmaps.')
         # ctdet
         self.parser.add_argument('--reg_loss', default='l1',
                                  help='regression loss: sl1 | l1 | l2')
@@ -159,27 +155,16 @@ class opts(object):
         self.parser.add_argument('--wh_weight', type=float, default=0.1,
                                  help='loss weight for bounding box size.')
 
-        # task
-        # ctdet
-        self.parser.add_argument('--norm_wh', action='store_true',
-                                 help='L1(\hat(y) / y, 1) or L1(\hat(y), y)')
-        self.parser.add_argument('--dense_wh', action='store_true',
-                                 help='apply weighted regression near center or '
-                                      'just apply regression on center point.')
-        self.parser.add_argument('--cat_spec_wh', action='store_true',
-                                 help='category specific bounding box size.')
-        self.parser.add_argument('--not_reg_offset', action='store_true',
-                                 help='not regress local offset.')
-
         # ground truth validation
         self.parser.add_argument('--image_dir', type=str, default='images/trainval',
                                  help='training dataset path.')
         self.parser.add_argument('--root_path', type=str, default='../Dataset',
                                  help='training dataset path.')
-        self.parser.add_argument('--use_cos', type=int, default=0
-                                 , help='whether using cosine lr step policy')
-        self.parser.add_argument('--use_verb_sub', type=int, default=0
-                                 , help='whether using verb categories for subject')
+
+        # dist train
+        self.parser.add_argument('--dist', action='store_true')
+        self.parser.add_argument('--slurm', action='store_true')
+        self.parser.add_argument('--rank', type=int, default=0)
 
     def parse(self, args=''):
         if args == '':
@@ -281,7 +266,27 @@ class opts(object):
         dataset = Struct(default_dataset_info[opt.task])
         opt.dataset = dataset.dataset
         opt = self.update_dataset_info_and_set_heads(opt, dataset)
+
+        if opt.slurm:
+            self.init_slurm(opt)
+
         return opt
+
+    def init_slurm(self, opt):
+        import subprocess, torch
+        proc_id = int(os.environ['SLURM_PROCID'])
+        ntasks = int(os.environ['SLURM_NTASKS'])
+        node_list = os.environ['SLURM_NODELIST']
+        num_gpus = torch.cuda.device_count()
+        addr = subprocess.getoutput(
+            'scontrol show hostname {} | head -n1'.format(node_list))
+        os.environ['MASTER_PORT'] = str(opt.port)
+        os.environ['MASTER_ADDR'] = addr
+        os.environ['WORLD_SIZE'] = str(ntasks)
+        os.environ['RANK'] = str(proc_id)
+        os.environ['LOCAL_RANK'] = str(proc_id % num_gpus)
+        opt.rank = proc_id
+        self.setup_print(proc_id == 0)
 
     @staticmethod
     def setup_print(is_master):
