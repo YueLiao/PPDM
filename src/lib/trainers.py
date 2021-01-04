@@ -84,7 +84,7 @@ class HoidetLoss(torch.nn.Module):
         return loss, loss_states
 
 
-class HoidetTrainer(object):
+class Hoidet(object):
     def __init__(self, opt, model, optimizer=None):
         self.opt = opt
         self.optimizer = optimizer

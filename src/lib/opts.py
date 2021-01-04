@@ -11,7 +11,7 @@ class opts(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         # basic experiment setting
-        self.parser.add_argument('task', default='hoidet',
+        self.parser.add_argument('task', default='Hoidet',
                                  help='ctdet | ddd | multi_pose | exdet')
         self.parser.add_argument('--dataset', default='hico',
                                  help='hico | vcoco | hoia')
