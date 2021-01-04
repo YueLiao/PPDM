@@ -235,7 +235,8 @@ class opts(object):
             opt.load_model = os.path.join(model_path, 'model_last.pth')
         return opt
 
-    def update_dataset_info_and_set_heads(self, opt, dataset):
+    @staticmethod
+    def update_dataset_info_and_set_heads(opt, dataset):
         input_h, input_w = dataset.default_resolution
         opt.mean, opt.std = dataset.mean, dataset.std
         opt.num_classes = dataset.num_classes
@@ -281,3 +282,18 @@ class opts(object):
         opt.dataset = dataset.dataset
         opt = self.update_dataset_info_and_set_heads(opt, dataset)
         return opt
+
+    @staticmethod
+    def setup_print(is_master):
+        """
+        This function disables printing when not in master process
+        """
+        import builtins as __builtin__
+        builtin_print = __builtin__.print
+
+        def print(*args, **kwargs):
+            force = kwargs.pop('force', False)
+            if is_master or force:
+                builtin_print(*args, **kwargs)
+
+        __builtin__.print = print
