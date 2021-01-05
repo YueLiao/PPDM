@@ -67,6 +67,7 @@ def load_model(model, model_path, optimizer=None, resume=False,
 
 
 def save_model(path, epoch, model, optimizer=None):
+    # TODO: Save DDP Model
     if isinstance(model, torch.nn.DataParallel):
         state_dict = model.module.state_dict()
     else:

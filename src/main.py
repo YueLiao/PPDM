@@ -12,7 +12,6 @@ import torch.utils.data
 import trainers
 from opts import opts
 from models.model import create_model, load_model, save_model
-from models.data_parallel import DataParallel
 from logger import Logger
 from datasets import get_dataset
 
