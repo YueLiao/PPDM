@@ -23,10 +23,8 @@ def main(opt):
     torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
     Dataset = get_dataset(opt.dataset)
     opt = opts().update_dataset_info_and_set_heads(opt, Dataset)
-
     print(opt)
 
-    logger = Logger(opt)
 
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
     opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
@@ -41,7 +39,6 @@ def main(opt):
 
     trainer = getattr(trainers, opt.task)(opt, model, optimizer)
     train_dataset = Dataset(opt, 'train')
-
     if opt.dist:
         if opt.slurm:
             local_rank = int(os.environ.get('LOCAL_RANK') or 0)
@@ -72,25 +69,26 @@ def main(opt):
             pin_memory=True,
             drop_last=True
         )
-
+    if opt.rank == 0:
+        logger = Logger(opt)
     print('Starting training...')
     for epoch in range(start_epoch + 1, opt.num_epochs + 1):
         if opt.dist:
-            train_sampler.set_epoch(epoch)
+            train_sampler.set_epoch(epoch - 1)
 
         log_dict_train, _ = trainer.train(epoch, train_loader)
-        logger.write('epoch: {} |'.format(epoch))
-        for k, v in log_dict_train.items():
-            logger.scalar_summary('train_{}'.format(k), v, epoch)
-            logger.write('{} {:8f} | '.format(k, v))
         if opt.rank == 0:
+            logger.write('epoch: {} |'.format(epoch))
+            for k, v in log_dict_train.items():
+                logger.scalar_summary('train_{}'.format(k), v, epoch)
+                logger.write('{} {:8f} | '.format(k, v))
             if epoch > 40:
                 save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
                            epoch, model, optimizer)
             else:
                 save_model(os.path.join(opt.save_dir, 'model_last.pth'),
                            epoch, model, optimizer)
-        logger.write('\n')
+            logger.write('\n')
         if epoch in opt.lr_step:
             save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
                        epoch, model, optimizer)
@@ -98,7 +96,8 @@ def main(opt):
             print('Drop LR to', lr)
             for param_group in optimizer.param_groups:
                 param_group['lr'] = lr
-    logger.close()
+    if opt.rank == 0:
+        logger.close()
 
 
 if __name__ == '__main__':

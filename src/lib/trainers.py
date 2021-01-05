@@ -31,7 +31,7 @@ class ModelWithLoss(torch.nn.Module):
 class HoidetLoss(torch.nn.Module):
     def __init__(self, opt):
         super(HoidetLoss, self).__init__()
-        self.crit = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()
+        self.crit = FocalLoss()
         self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
             RegLoss() if opt.reg_loss == 'sl1' else None
         self.crit_wh = self.crit_reg
@@ -98,7 +98,7 @@ class Hoidet(object):
         torch.cuda.set_device(local_rank)
         torch.distributed.init_process_group(backend="nccl")
         self.model_with_loss.cuda()
-        self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank])
+        self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank],find_unused_parameters = True)
 
         for state in self.optimizer.state.values():
             for k, v in state.items():

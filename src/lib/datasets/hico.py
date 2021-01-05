@@ -167,8 +167,7 @@ class HICO(Dataset):
         sub_offset = np.zeros((self.max_rels, 2), dtype=np.float32)
         obj_offset = np.zeros((self.max_rels, 2), dtype=np.float32)
 
-        draw_gaussian = draw_msra_gaussian if self.opt.mse_loss else \
-            draw_umich_gaussian
+        draw_gaussian = draw_umich_gaussian
 
         gt_det = []
 
@@ -196,7 +195,6 @@ class HICO(Dataset):
             if h > 0 and w > 0:
                 radius = gaussian_radius((math.ceil(h), math.ceil(w)))
                 radius = max(0, int(radius))
-                radius = self.opt.hm_gauss if self.opt.mse_loss else radius
                 wh[k] = 1. * w, 1. * h
                 ind[k] = ct_int[1] * output_w + ct_int[0]
                 reg[k] = ct - ct_int
@@ -220,7 +218,6 @@ class HICO(Dataset):
                                (sub_ct[1] + obj_ct[1]) / 2], dtype=np.float32)
             radius = gaussian_radius((math.ceil(abs(sub_ct[0] - obj_ct[0])), math.ceil(abs(sub_ct[1] - obj_ct[1]))))
             radius = max(0, int(radius))
-            radius = self.opt.hm_gauss if self.opt.mse_loss else radius
             rel_ct_int = rel_ct.astype(np.int32)
             draw_gaussian(hm_rel[hoi_cate], rel_ct_int, radius)
             rel_sub_offset = np.array([rel_ct_int[0] - sub_ct[0], rel_ct_int[1] - sub_ct[1]], dtype=np.float32)

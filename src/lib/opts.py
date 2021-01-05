@@ -82,9 +82,9 @@ class opts(object):
         # train
         self.parser.add_argument('--lr', type=float, default=1.25e-4,
                                  help='learning rate for batch size 32.')
-        self.parser.add_argument('--lr_step', type=str, default='90,120',
+        self.parser.add_argument('--lr_step', type=str, default='40,50',
                                  help='drop learning rate by 10.')
-        self.parser.add_argument('--num_epochs', type=int, default=140,
+        self.parser.add_argument('--num_epochs', type=int, default=60,
                                  help='total training epochs.')
         self.parser.add_argument('--batch_size', type=int, default=32,
                                  help='batch size')
@@ -154,6 +154,8 @@ class opts(object):
                                  help='loss weight for keypoint local offsets.')
         self.parser.add_argument('--wh_weight', type=float, default=0.1,
                                  help='loss weight for bounding box size.')
+        self.parser.add_argument('--not_reg_offset', action='store_true',
+                                 help='not regress local offset.')
 
         # ground truth validation
         self.parser.add_argument('--image_dir', type=str, default='images/trainval',
@@ -165,6 +167,7 @@ class opts(object):
         self.parser.add_argument('--dist', action='store_true')
         self.parser.add_argument('--slurm', action='store_true')
         self.parser.add_argument('--rank', type=int, default=0)
+        self.parser.add_argument('--port', type=int, default=29300)
 
     def parse(self, args=''):
         if args == '':
@@ -218,6 +221,9 @@ class opts(object):
             model_path = opt.save_dir[:-4] if opt.save_dir.endswith('TEST') \
                 else opt.save_dir
             opt.load_model = os.path.join(model_path, 'model_last.pth')
+        
+        if opt.slurm:
+            self.init_slurm(opt)
         return opt
 
     @staticmethod
@@ -239,7 +245,7 @@ class opts(object):
         if opt.task == 'Hoidet':
             assert opt.dataset in ['hico', 'vcoco', 'hoia']
             opt.heads = {'hm': opt.num_classes,
-                         'wh': 2 if not opt.cat_spec_wh else 2 * opt.num_classes,
+                         'wh': 2,
                          'hm_rel': opt.num_classes_verb,
                          'sub_offset': 2,
                          'obj_offset': 2}
@@ -266,9 +272,6 @@ class opts(object):
         dataset = Struct(default_dataset_info[opt.task])
         opt.dataset = dataset.dataset
         opt = self.update_dataset_info_and_set_heads(opt, dataset)
-
-        if opt.slurm:
-            self.init_slurm(opt)
 
         return opt
 
