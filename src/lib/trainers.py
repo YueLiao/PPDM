@@ -12,7 +12,6 @@ from models.utils import _sigmoid
 
 from progress.bar import Bar
 from models.data_parallel import DataParallel
-from torch.nn.parallel import DistributedDataParallel as DDP
 from utils.utils import AverageMeter
 
 
@@ -98,12 +97,36 @@ class Hoidet(object):
         torch.cuda.set_device(local_rank)
         torch.distributed.init_process_group(backend="nccl")
         self.model_with_loss.cuda()
-        self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank],find_unused_parameters = True)
 
         for state in self.optimizer.state.values():
             for k, v in state.items():
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(device=self.opt.device, non_blocking=True)
+
+        if self.opt.apex:
+            try:
+                from apex.parallel import DistributedDataParallel as DDP
+                from apex import amp
+            except ImportError:
+                raise ImportError(
+                    "Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training."
+                )
+
+            if self.opt.fp16:
+                self.model_with_loss, self.optimizer = amp.initialize(self.model_with_loss, self.optimizer, opt_level='O2', keep_batchnorm_fp32=True,
+                                                  loss_scale='dynamic')
+            else:
+                self.model_with_loss, self.optimizer = amp.initialize(self.model_with_loss, self.optimizer, opt_level='O0')
+            self.model_with_loss = DDP(self.model_with_loss)
+
+            if self.opt.sync_bn:
+                from apex.parallel import convert_syncbn_model
+                self.model_with_loss = convert_syncbn_model(self.model_with_loss)
+        else:
+            from torch.nn.parallel import DistributedDataParallel as DDP
+            self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank], find_unused_parameters=True)
+
+
 
     def run_epoch(self, model_with_loss, epoch, data_loader, phase='train'):
         opt = self.opt
@@ -125,8 +148,16 @@ class Hoidet(object):
             loss = loss.mean()
             if phase == 'train':
                 self.optimizer.zero_grad()
-                loss.backward()
+
+                if self.opt.apex:
+                    from apex import amp
+                    with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                        scaled_loss.backward()
+                else:
+                    loss.backward()
+
                 self.optimizer.step()
+
             batch_time.update(time.time() - end)
             end = time.time()
 

@@ -166,6 +166,9 @@ class opts(object):
         # dist train
         self.parser.add_argument('--dist', action='store_true')
         self.parser.add_argument('--slurm', action='store_true')
+        self.parser.add_argument('--apex', action='store_true')
+        self.parser.add_argument('--fp16', action='store_true')
+        self.parser.add_argument('--sync_bn', action='store_true')
         self.parser.add_argument('--rank', type=int, default=0)
         self.parser.add_argument('--port', type=int, default=29300)
 
