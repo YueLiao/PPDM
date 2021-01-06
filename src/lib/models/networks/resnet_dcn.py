@@ -8,11 +8,10 @@ import logging
 
 import torch
 import torch.nn as nn
+from .DCNv2.dcn_v2 import DCN
 import torch.utils.model_zoo as model_zoo
 
-from .dcn import BN_MOMENTUM, fill_fc_weights, fill_up_weights, BasicBlock, Bottleneck as _Bottleneck
-from .DCNv2.dcn_v2 import DCN
-
+BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
 
 model_urls = {
@@ -24,10 +23,49 @@ model_urls = {
 }
 
 
-class Bottleneck(_Bottleneck):
-    def __init__(self, inplanes, planes, stride=1, downsample=None, expansion=4):
-        super(Bottleneck, self).__init__(inplanes, planes)
-        self.expansion = expansion
+def conv3x3(in_planes, out_planes, stride=1):
+    """3x3 convolution with padding"""
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     padding=1, bias=False)
+
+
+class BasicBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
+        super(BasicBlock, self).__init__()
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = conv3x3(planes, planes)
+        self.bn2 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
+
+
+class Bottleneck(nn.Module):
+    expansion = 4
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
+        super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
@@ -40,6 +78,50 @@ class Bottleneck(_Bottleneck):
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
+
+    def forward(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
+
+
+def fill_up_weights(up):
+    w = up.weight.data
+    f = math.ceil(w.size(2) / 2)
+    c = (2 * f - 1 - f % 2) / (2. * f)
+    for i in range(w.size(2)):
+        for j in range(w.size(3)):
+            w[0, 0, i, j] = \
+                (1 - math.fabs(i / f - c)) * (1 - math.fabs(j / f - c))
+    for c in range(1, w.size(0)):
+        w[c, 0, :, :] = w[0, 0, :, :]
+
+
+def fill_fc_weights(layers):
+    for m in layers.modules():
+        if isinstance(m, nn.Conv2d):
+            nn.init.normal_(m.weight, std=0.001)
+            # torch.nn.init.kaiming_normal_(m.weight.data, nonlinearity='relu')
+            # torch.nn.init.xavier_normal_(m.weight.data)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
 
 
 class PoseResNet(nn.Module):
@@ -80,7 +162,7 @@ class PoseResNet(nn.Module):
                 if 'hm' in head:
                     fc[-1].bias.data.fill_(-2.19)
                 else:
-                    fill_fc_weights(fc, init_weight=True)
+                    fill_fc_weights(fc)
             else:
                 fc = nn.Conv2d(64, classes,
                                kernel_size=1, stride=1,
@@ -88,7 +170,7 @@ class PoseResNet(nn.Module):
                 if 'hm' in head:
                     fc.bias.data.fill_(-2.19)
                 else:
-                    fill_fc_weights(fc, init_weight=True)
+                    fill_fc_weights(fc)
             self.__setattr__(head, fc)
 
     def _make_layer(self, block, planes, blocks, stride=1):
@@ -139,7 +221,7 @@ class PoseResNet(nn.Module):
             # fc = nn.Conv2d(self.inplanes, planes,
             #         kernel_size=3, stride=1, 
             #         padding=1, dilation=1, bias=False)
-            # fill_fc_weights(fc, init_weight=True)
+            # fill_fc_weights(fc)
             up = nn.ConvTranspose2d(
                 in_channels=planes,
                 out_channels=planes,

@@ -62,7 +62,7 @@ class residual(nn.Module):
         self.skip = nn.Sequential(
             nn.Conv2d(inp_dim, out_dim, (1, 1), stride=(stride, stride), bias=False),
             nn.BatchNorm2d(out_dim)
-        ) if stride != 1 or inp_dim != out_dim else nn.Identity()
+        ) if stride != 1 or inp_dim != out_dim else nn.Sequential()
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
