@@ -13,9 +13,9 @@ from torch import nn
 import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 
-from .dcn import BN_MOMENTUM, fill_fc_weights, fill_up_weights, Bottleneck as _Bottleneck
+from .dcn import BN_MOMENTUM, fill_fc_weights, fill_up_weights, BasicBlock, Bottleneck as _Bottleneck
 from .DCNv2.dcn_v2 import DCN
-from ..glore import GloRe
+from .glore import GloRe
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ class Tree(nn.Module):
         residual = self.project(bottom) if self.project else bottom
         if self.level_root:
             children.append(bottom)
-        x1 = self.tree1(x, residual)
+        x1 = self.tree1(x, residual=residual)
         if self.levels == 1:
             x2 = self.tree2(x1)
             x = self.root(x2, x1, *children)
