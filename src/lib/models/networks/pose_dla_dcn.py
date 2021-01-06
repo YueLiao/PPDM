@@ -13,10 +13,10 @@ from torch import nn
 import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 
-from .dcn import BN_MOMENTUM, fill_fc_weights, fill_up_weights, BasicBlock, Bottleneck as _Bottleneck
 from .DCNv2.dcn_v2 import DCN
-from .glore import GloRe
+from ..glore import GloRe
 
+BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
 
 
@@ -24,11 +24,50 @@ def get_model_url(data='imagenet', name='dla34', hash='ba72cf86'):
     return join('http://dl.yf.io/dla/models', data, '{}-{}.pth'.format(name, hash))
 
 
-class Bottleneck(_Bottleneck):
-    def __init__(self, inplanes, planes, stride=1, dilation=1, expansion=2):
-        super(Bottleneck, self).__init__(inplanes, planes)
-        self.expansion = expansion
-        bottle_planes = planes // self.expansion
+def conv3x3(in_planes, out_planes, stride=1):
+    "3x3 convolution with padding"
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     padding=1, bias=False)
+
+
+class BasicBlock(nn.Module):
+    def __init__(self, inplanes, planes, stride=1, dilation=1):
+        super(BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3,
+                               stride=stride, padding=dilation,
+                               bias=False, dilation=dilation)
+        self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
+                               stride=1, padding=dilation,
+                               bias=False, dilation=dilation)
+        self.bn2 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
+        self.stride = stride
+
+    def forward(self, x, residual=None):
+        if residual is None:
+            residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
+
+
+class Bottleneck(nn.Module):
+    expansion = 2
+
+    def __init__(self, inplanes, planes, stride=1, dilation=1):
+        super(Bottleneck, self).__init__()
+        expansion = Bottleneck.expansion
+        bottle_planes = planes // expansion
         self.conv1 = nn.Conv2d(inplanes, bottle_planes,
                                kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(bottle_planes, momentum=BN_MOMENTUM)
@@ -42,13 +81,33 @@ class Bottleneck(_Bottleneck):
         self.relu = nn.ReLU(inplace=True)
         self.stride = stride
 
+    def forward(self, x, residual=None):
+        if residual is None:
+            residual = x
 
-class BottleneckX(_Bottleneck):
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
+
+
+class BottleneckX(nn.Module):
     expansion = 2
     cardinality = 32
 
     def __init__(self, inplanes, planes, stride=1, dilation=1):
-        super(BottleneckX, self).__init__(inplanes, planes)
+        super(BottleneckX, self).__init__()
         cardinality = BottleneckX.cardinality
         # dim = int(math.floor(planes * (BottleneckV5.expansion / 64.0)))
         # bottle_planes = dim * cardinality
@@ -65,6 +124,26 @@ class BottleneckX(_Bottleneck):
         self.bn3 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
         self.relu = nn.ReLU(inplace=True)
         self.stride = stride
+
+    def forward(self, x, residual=None):
+        if residual is None:
+            residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
 
 
 class Root(nn.Module):
@@ -134,7 +213,7 @@ class Tree(nn.Module):
         residual = self.project(bottom) if self.project else bottom
         if self.level_root:
             children.append(bottom)
-        x1 = self.tree1(x, residual=residual)
+        x1 = self.tree1(x, residual)
         if self.levels == 1:
             x2 = self.tree2(x1)
             x = self.root(x2, x1, *children)
@@ -236,6 +315,34 @@ def dla34(pretrained=True, **kwargs):  # DLA-34
     if pretrained:
         model.load_pretrained_model(data='imagenet', name='dla34', hash='ba72cf86')
     return model
+
+
+class Identity(nn.Module):
+
+    def __init__(self):
+        super(Identity, self).__init__()
+
+    def forward(self, x):
+        return x
+
+
+def fill_fc_weights(layers):
+    for m in layers.modules():
+        if isinstance(m, nn.Conv2d):
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+
+
+def fill_up_weights(up):
+    w = up.weight.data
+    f = math.ceil(w.size(2) / 2)
+    c = (2 * f - 1 - f % 2) / (2. * f)
+    for i in range(w.size(2)):
+        for j in range(w.size(3)):
+            w[0, 0, i, j] = \
+                (1 - math.fabs(i / f - c)) * (1 - math.fabs(j / f - c))
+    for c in range(1, w.size(0)):
+        w[c, 0, :, :] = w[0, 0, :, :]
 
 
 class DeformConv(nn.Module):
@@ -380,10 +487,10 @@ class DLASeg(nn.Module):
             y.append(x[i].clone())
         self.ida_up(y, 0, len(y))
 
-        ret = {}
+        z = {}
         for head in self.heads:
-            ret[head] = self.__getattr__(head)(y[-1])
-        return [ret]
+            z[head] = self.__getattr__(head)(y[-1])
+        return [z]
 
 
 def get_pose_net(num_layers, heads, head_conv=256, down_ratio=4):

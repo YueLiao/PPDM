@@ -12,11 +12,10 @@ import torch.utils.data
 import trainers
 from opts import opts
 from models.model import create_model, load_model, save_model
+from models.data_parallel import DataParallel
 from logger import Logger
 from datasets import get_dataset
 
-import torch.distributed as dist
-from torch.utils.data.distributed import DistributedSampler
 
 def main(opt):
     torch.manual_seed(opt.seed)
@@ -25,6 +24,7 @@ def main(opt):
     opt = opts().update_dataset_info_and_set_heads(opt, Dataset)
     print(opt)
 
+    logger = Logger(opt)
 
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
     opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
@@ -38,57 +38,32 @@ def main(opt):
             model, opt.load_model, optimizer, opt.resume, opt.lr, opt.lr_step)
 
     trainer = getattr(trainers, opt.task)(opt, model, optimizer)
-    train_dataset = Dataset(opt, 'train')
-    if opt.dist:
-        if opt.slurm:
-            local_rank = int(os.environ.get('LOCAL_RANK') or 0)
-            trainer.set_dist(local_rank)
-        else:
-            raise NotImplementedError
+    trainer.set_device(opt.gpus, opt.chunk_sizes, opt.device)
 
-        num_replicas = dist.get_world_size()
-        opt.batch_size = opt.batch_size // num_replicas
-        opt.num_workers = opt.num_workers // num_replicas
-        train_sampler = DistributedSampler(train_dataset)
-        batch_sampler_train = torch.utils.data.BatchSampler(
-            train_sampler, opt.batch_size, drop_last=True
-        )
-        train_loader = torch.utils.data.DataLoader(
-            train_dataset,
-            batch_sampler=batch_sampler_train,
-            num_workers=1,
-            pin_memory=True)
-    else:
-        trainer.set_device(opt.gpus, opt.chunk_sizes, opt.device)
+    train_loader = torch.utils.data.DataLoader(
+        Dataset(opt, 'train'),
+        batch_size=opt.batch_size,
+        shuffle=True,
+        num_workers=opt.num_workers,
+        pin_memory=True,
+        drop_last=True
+    )
 
-        train_loader = torch.utils.data.DataLoader(
-            Dataset(opt, 'train'),
-            batch_size=opt.batch_size,
-            shuffle=True,
-            num_workers=opt.num_workers,
-            pin_memory=True,
-            drop_last=True
-        )
-    if opt.rank == 0:
-        logger = Logger(opt)
     print('Starting training...')
     for epoch in range(start_epoch + 1, opt.num_epochs + 1):
-        if opt.dist:
-            train_sampler.set_epoch(epoch - 1)
-
+        mark = epoch if opt.save_all else 'last'
         log_dict_train, _ = trainer.train(epoch, train_loader)
-        if opt.rank == 0:
-            logger.write('epoch: {} |'.format(epoch))
-            for k, v in log_dict_train.items():
-                logger.scalar_summary('train_{}'.format(k), v, epoch)
-                logger.write('{} {:8f} | '.format(k, v))
-            if epoch > 40:
-                save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
-                           epoch, model, optimizer)
-            else:
-                save_model(os.path.join(opt.save_dir, 'model_last.pth'),
-                           epoch, model, optimizer)
-            logger.write('\n')
+        logger.write('epoch: {} |'.format(epoch))
+        for k, v in log_dict_train.items():
+            logger.scalar_summary('train_{}'.format(k), v, epoch)
+            logger.write('{} {:8f} | '.format(k, v))
+        if epoch > 100:
+            save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
+                       epoch, model, optimizer)
+        else:
+            save_model(os.path.join(opt.save_dir, 'model_last.pth'),
+                       epoch, model, optimizer)
+        logger.write('\n')
         if epoch in opt.lr_step:
             save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
                        epoch, model, optimizer)
@@ -96,8 +71,7 @@ def main(opt):
             print('Drop LR to', lr)
             for param_group in optimizer.param_groups:
                 param_group['lr'] = lr
-    if opt.rank == 0:
-        logger.close()
+    logger.close()
 
 
 if __name__ == '__main__':

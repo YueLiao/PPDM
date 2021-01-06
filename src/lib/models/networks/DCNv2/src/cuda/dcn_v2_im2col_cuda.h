@@ -1,4 +1,3 @@
-
 /*!
  ******************* BEGIN Caffe Copyright Notice and Disclaimer ****************
  *
