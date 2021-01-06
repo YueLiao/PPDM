@@ -48,8 +48,8 @@ class BasicBlock(nn.Module):
         self.downsample = downsample
         self.stride = stride
 
-    def forward(self, x: Tensor) -> Tensor:
-        identity = x
+    def forward(self, x: Tensor, residual: Tensor = None) -> Tensor:
+        identity = residual if residual is not None else x
 
         out = self.conv1(x)
         out = self.bn1(out)
@@ -102,8 +102,8 @@ class Bottleneck(nn.Module):
         self.downsample = downsample
         self.stride = stride
 
-    def forward(self, x: Tensor) -> Tensor:
-        identity = x
+    def forward(self, x: Tensor, residual: Tensor = None) -> Tensor:
+        identity = residual if residual is not None else x
 
         out = self.conv1(x)
         out = self.bn1(out)
