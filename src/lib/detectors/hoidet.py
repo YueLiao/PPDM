@@ -18,14 +18,14 @@ class HoidetDetector(BaseDetector):
         super(HoidetDetector, self).__init__(opt)
         self.opt = opt
         if 'hico' in self.opt.dataset:
-            self.corre_mat = np.load(os.path.join(self.opt.root_path, 'hico_det/annotations/corre_hico.npy'))
+            self.hoi_cate_mask = np.load(os.path.join(self.opt.root_path, 'hico_det/annotations/corre_hico.npy'))
         elif 'vcoco' in opt.dataset:
-            self.corre_mat = np.load(os.path.join(self.opt.root_path, 'verbcoco/annotations/corre_vcoco.npy'))
+            self.hoi_cate_mask = np.load(os.path.join(self.opt.root_path, 'verbcoco/annotations/corre_vcoco.npy'))
         elif 'hoia' in opt.dataset:
-            self.corre_mat = np.load(os.path.join(self.opt.root_path, 'hoia/annotations/corre_hoia.npy'))
-        self.triplet_labels = np.nonzero(self.corre_mat)
+            self.hoi_cate_mask = np.load(os.path.join(self.opt.root_path, 'hoia/annotations/corre_hoia.npy'))
+        self.triplet_labels = np.nonzero(self.hoi_cate_mask)
         self.triplet_labels = list(zip(self.triplet_labels[0], self.triplet_labels[1]))
-        self.corre_mat = torch.tensor(self.corre_mat).float().cuda()
+        self.hoi_cate_mask = torch.tensor(self.hoi_cate_mask).float().cuda()
 
     def process(self, images, return_time=False):
 
@@ -40,8 +40,8 @@ class HoidetDetector(BaseDetector):
             torch.cuda.synchronize()
             forward_time = time.time()
 
-            dets_obj, dets_sub, rel = hoidet_decode(hm_obj, wh, hm_rel, sub_offset, obj_offset, reg=reg,
-                                                    corremat=self.corre_mat, is_sub_verb=self.opt.use_verb_sub)
+            dets_sub, dets_obj, rel = hoidet_decode(hm_obj, wh, hm_rel, sub_offset, obj_offset, reg=reg,
+                                                    hoi_cate_mask=self.hoi_cate_mask)
 
         if return_time:
             return output, dets_obj, dets_sub, rel, forward_time, images.size()[2], images.size()[3]

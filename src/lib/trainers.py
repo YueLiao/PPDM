@@ -8,7 +8,7 @@ import torch
 
 from models.losses import FocalLoss
 from models.losses import RegL1Loss, RegLoss
-from models.utils import _sigmoid
+from utils import clamped_sigmoid
 
 from progress.bar import Bar
 from models.data_parallel import DataParallel
@@ -41,8 +41,8 @@ class HoidetLoss(torch.nn.Module):
         hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
         for s in range(opt.num_stacks):
             output = outputs[s]
-            output['hm'] = _sigmoid(output['hm'])
-            output['hm_rel'] = _sigmoid(output['hm_rel'])
+            output['hm'] = clamped_sigmoid(output['hm'])
+            output['hm_rel'] = clamped_sigmoid(output['hm_rel'])
             hm_loss += self.crit(output['hm'], batch['hm']) / opt.num_stacks
             hm_rel_loss += self.crit(output['hm_rel'], batch['hm_rel']) / opt.num_stacks
 
@@ -125,8 +125,6 @@ class Hoidet(object):
         else:
             from torch.nn.parallel import DistributedDataParallel as DDP
             self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank], find_unused_parameters=True)
-
-
 
     def run_epoch(self, model_with_loss, epoch, data_loader, phase='train'):
         opt = self.opt

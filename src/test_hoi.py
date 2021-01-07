@@ -89,24 +89,25 @@ def prefetch_test(opt):
             bar.next()
         bar.finish()
 
-        if opt.test_with_eval:
-            if 'hico' in opt.dataset:
-                hoi_eval = hico(os.path.join(opt.root_path, 'hico_det/annotations/test_hico.json'))
-            elif 'vcoco' in opt.dataset:
-                hoi_eval = vcoco(os.path.join(opt.root_path, 'verbcoco/annotations/test_vcoco.json'))
-            elif 'hoia' in opt.dataset:
-                hoi_eval = hoia(os.path.join(opt.root_path, 'hoia/annotations/test_hoia.json'))
-            map = hoi_eval.evalution(output_hoi)
-            if map > map_dcit['best_map']:
-                map_dcit['best_map'] = map
-                map_dcit['best_id'] = model_id
-                best_output = output_hoi
-
         if opt.save_predictions:
             save_json(output_hoi, model_path, 'predictions_model_' + str(model_id) + '.json')
-    if opt.test_with_eval:
-        print('best model id: {}, best map: {}'.format(map_dcit['best_id'], map_dcit['best_map']))
-        save_json(best_output, model_path, 'best_predictions.json')
+
+        if opt.test_with_eval:
+            if opt.test_with_eval:
+                if 'hico' in opt.dataset:
+                    hoi_eval = hico(os.path.join(opt.root_path, 'hico_det/annotations/test_hico.json'))
+                elif 'vcoco' in opt.dataset:
+                    hoi_eval = vcoco(os.path.join(opt.root_path, 'verbcoco/annotations/test_vcoco.json'))
+                elif 'hoia' in opt.dataset:
+                    hoi_eval = hoia(os.path.join(opt.root_path, 'hoia/annotations/test_hoia.json'))
+                map = hoi_eval.evalution(output_hoi)
+                if map > map_dcit['best_map']:
+                    map_dcit['best_map'] = map
+                    map_dcit['best_id'] = model_id
+                    best_output = output_hoi
+
+            print('best model id: {}, best map: {}'.format(map_dcit['best_id'], map_dcit['best_map']))
+            save_json(best_output, model_path, 'best_predictions.json')
 
 
 if __name__ == '__main__':

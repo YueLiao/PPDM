@@ -56,7 +56,7 @@ def main(opt):
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
             batch_sampler=batch_sampler_train,
-            num_workers=1,
+            num_workers=opt.num_workers,
             pin_memory=True)
     else:
         trainer.set_device(opt.gpus, opt.chunk_sizes, opt.device)
@@ -82,7 +82,7 @@ def main(opt):
             for k, v in log_dict_train.items():
                 logger.scalar_summary('train_{}'.format(k), v, epoch)
                 logger.write('{} {:8f} | '.format(k, v))
-            if epoch > 40:
+            if epoch > 100:
                 save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
                            epoch, model, optimizer)
             else:

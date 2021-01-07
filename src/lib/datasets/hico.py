@@ -11,6 +11,11 @@ from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
 import math
 
 
+import sys
+sys.path.append(r'/mnt/lustre/share/pymc/py3')
+import mc
+
+
 def xywh_to_xyxy(boxes):
     """Convert [x y w h] box format to [x1 y1 x2 y2] format."""
     return np.hstack((boxes[:, 0:2], boxes[:, 0:2] + boxes[:, 2:4] - 1))
@@ -89,6 +94,15 @@ class HICO(Dataset):
             self.hoi_annotations = json.load(open(os.path.join(self.root, 'annotations', 'test_hico.json'), 'r'))
             self.ids = list(range(len(self.hoi_annotations)))
 
+        self.mclient = None
+
+    def _ensure_memcached(self):
+        if self.mclient is None:
+            server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
+            client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
+            self.mclient = mc.MemcachedClient.GetInstance(server_list_config_file, client_config_file)
+        return
+
     def _get_border(self, border, size):
         i = 1
         while size - border // i <= border // i:
@@ -109,7 +123,12 @@ class HICO(Dataset):
         hoi_anns = self.hoi_annotations[img_id]['hoi_annotation']
         num_objs = min(len(anns), self.max_objs)
 
-        img = cv2.imread(img_path)
+        self._ensure_memcached()
+        value = mc.pyvector()
+        self.mclient.Get(img_path, value)
+        value_buf = mc.ConvertBuffer(value)
+        img_array = np.frombuffer(value_buf, np.uint8)
+        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
 
         height, width = img.shape[0], img.shape[1]
         c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
