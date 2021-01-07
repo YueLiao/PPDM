@@ -46,7 +46,7 @@ def match_rel_box(rel, bbox, K_rel, K_bbox):
 
 
 def hoidet_decode(heat_obj, wh, heat_rel, offset_sub, offset_obj, reg=None, corremat=None, K_obj=100, K_human=100,
-                  K_rel=100, is_sub_verb=0):
+                  K_rel=100):
     batch, cat_obj, height, width = heat_obj.size()
     heat_obj = _nms(heat_obj)
     heat_rel = _nms(heat_rel)
@@ -125,8 +125,6 @@ def hoidet_decode(heat_obj, wh, heat_rel, offset_sub, offset_obj, reg=None, corr
                               ys_human - wh_human[..., 1:2] / 2,
                               xs_human + wh_human[..., 0:1] / 2,
                               ys_human + wh_human[..., 1:2] / 2], dim=2)
-    if is_sub_verb > 0:
-        clses_human[:] = 0.0
     human_detections = torch.cat([human_bboxes, scores_human, clses_human], dim=2)
 
     return obj_detections, human_detections, rel_triplet
