@@ -125,3 +125,4 @@ def hoidet_decode(heat_obj, wh, heat_rel, sub_offset, obj_offset, reg=None, hoi_
                    clses_obj, reg)
 
     return detections_sub.unsqueeze(0), detections_obj.unsqueeze(0), rel_triplet
+
