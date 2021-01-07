@@ -41,7 +41,7 @@ class HoidetDetector(BaseDetector):
             forward_time = time.time()
 
             dets_obj, dets_sub, rel = hoidet_decode(hm_obj, wh, hm_rel, sub_offset, obj_offset, reg=reg,
-                                                    corremat=self.corre_mat, is_sub_verb=self.opt.use_verb_sub)
+                                                    corremat=self.corre_mat)
 
         if return_time:
             return output, dets_obj, dets_sub, rel, forward_time, images.size()[2], images.size()[3]
