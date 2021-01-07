@@ -2,18 +2,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
 import time
 import torch
-
-from models.losses import FocalLoss
-from models.losses import RegL1Loss, RegLoss
-from utils import clamped_sigmoid
 
 from progress.bar import Bar
 from models.data_parallel import DataParallel
 from utils.utils import AverageMeter
-
+from models.model import HoidetLoss
 
 class ModelWithLoss(torch.nn.Module):
     def __init__(self, model, loss):
@@ -27,57 +22,12 @@ class ModelWithLoss(torch.nn.Module):
         return outputs[-1], loss, loss_states
 
 
-class HoidetLoss(torch.nn.Module):
-    def __init__(self, opt):
-        super(HoidetLoss, self).__init__()
-        self.crit = FocalLoss()
-        self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
-            RegLoss() if opt.reg_loss == 'sl1' else None
-        self.crit_wh = self.crit_reg
-        self.opt = opt
-
-    def forward(self, outputs, batch):
-        opt = self.opt
-        hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
-        for s in range(opt.num_stacks):
-            output = outputs[s]
-            output['hm'] = clamped_sigmoid(output['hm'])
-            output['hm_rel'] = clamped_sigmoid(output['hm_rel'])
-            hm_loss += self.crit(output['hm'], batch['hm']) / opt.num_stacks
-            hm_rel_loss += self.crit(output['hm_rel'], batch['hm_rel']) / opt.num_stacks
-
-            if opt.wh_weight > 0:
-                wh_loss += self.crit_reg(
-                    output['wh'], batch['reg_mask'],
-                    batch['ind'], batch['wh']) / opt.num_stacks
-                sub_offset_loss += self.crit_reg(
-                    output['sub_offset'], batch['offset_mask'],
-                    batch['rel_ind'], batch['sub_offset']
-                )
-                obj_offset_loss += self.crit_reg(
-                    output['obj_offset'], batch['offset_mask'],
-                    batch['rel_ind'], batch['obj_offset']
-                )
-            if opt.reg_offset and opt.off_weight > 0:
-                off_loss += self.crit_reg(output['reg'], batch['reg_mask'],
-                                          batch['ind'], batch['reg']) / opt.num_stacks
-
-        loss = opt.hm_weight * (hm_loss + hm_rel_loss) + opt.wh_weight * (
-            wh_loss + sub_offset_loss + obj_offset_loss) + \
-               opt.off_weight * off_loss
-        loss_states = {'loss': loss, 'hm_loss': hm_loss,
-                       'wh_loss': wh_loss, 'off_loss': off_loss, 'hm_rel_loss': hm_rel_loss,
-                       'sub_offset_loss': sub_offset_loss, 'obj_offset_loss': obj_offset_loss}
-        return loss, loss_states
-
-
 class Hoidet(object):
     def __init__(self, opt, model, optimizer=None):
         self.opt = opt
         self.optimizer = optimizer
         loss = HoidetLoss(opt)
-        self.loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss',
-                            'sub_offset_loss', 'obj_offset_loss']
+        self.loss_states = loss.states
         self.model_with_loss = ModelWithLoss(model, loss)
 
     def set_device(self, gpus, chunk_sizes, device):
@@ -113,10 +63,12 @@ class Hoidet(object):
                 )
 
             if self.opt.fp16:
-                self.model_with_loss, self.optimizer = amp.initialize(self.model_with_loss, self.optimizer, opt_level='O2', keep_batchnorm_fp32=True,
-                                                  loss_scale='dynamic')
+                self.model_with_loss, self.optimizer = amp.initialize(self.model_with_loss, self.optimizer,
+                                                                      opt_level='O2', keep_batchnorm_fp32=True,
+                                                                      loss_scale='dynamic')
             else:
-                self.model_with_loss, self.optimizer = amp.initialize(self.model_with_loss, self.optimizer, opt_level='O0')
+                self.model_with_loss, self.optimizer = amp.initialize(self.model_with_loss, self.optimizer,
+                                                                      opt_level='O0')
             self.model_with_loss = DDP(self.model_with_loss)
 
             if self.opt.sync_bn:
@@ -125,7 +77,6 @@ class Hoidet(object):
         else:
             from torch.nn.parallel import DistributedDataParallel as DDP
             self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank], find_unused_parameters=True)
-
 
     def run_epoch(self, model_with_loss, epoch, data_loader, phase='train'):
         opt = self.opt

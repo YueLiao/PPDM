@@ -42,7 +42,7 @@ def get_matching_scores(point_a, point_b, offset):
         y_coarse_b.view(-1, 1).repeat(1,
                                       y_b.size()[0]) -
         y_b.view(1, -1).repeat(y_coarse_b.size()[0], 1))
- 
+
     return (1 / (dis_x + 1)) * (1 / (dis_y + 1))
 
 

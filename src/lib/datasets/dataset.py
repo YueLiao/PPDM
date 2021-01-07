@@ -249,7 +249,7 @@ class HICO(Dataset):
     def __len__(self):
         return len(self.ids)
 
-    def get_center_heatmap_target(self):
+    def get_heatmap_single_bbox_target(self):
         raise NotImplementedError
 
     def data_augmentation(self, img,  w, h, keep_res=False, rand_crop=False, flip=False, pad=31, scale=1, shift=0.1, down_ratio=4):

@@ -7,7 +7,7 @@ import json
 
 from utils.image import flip, color_aug
 from utils.image import get_affine_transform, affine_transform
-from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
+from utils.image import gaussian_radius, draw_umich_gaussian
 
 import math
 
@@ -169,8 +169,7 @@ class VCOCO(Dataset):
         sub_offset = np.zeros((self.max_rels, 2), dtype=np.float32)
         obj_offset = np.zeros((self.max_rels, 2), dtype=np.float32)
 
-        draw_gaussian = draw_msra_gaussian if self.opt.mse_loss else \
-            draw_umich_gaussian
+        draw_gaussian = draw_umich_gaussian
 
         gt_det = []
 
