@@ -27,13 +27,11 @@ def xyxy_to_xywh(boxes):
 
 
 class HICO(Dataset):
-    num_classes = 80
-    num_classes_verb = 117
+    num_classes = 0
+    num_classes_verb = 0
     default_resolution = [512, 512]
-    mean = np.array([0.40789654, 0.44719302, 0.47026115],
-                    dtype=np.float32).reshape(1, 1, 3)
-    std = np.array([0.28863828, 0.27408164, 0.27809835],
-                   dtype=np.float32).reshape(1, 1, 3)
+    mean = np.array([0.40789654, 0.44719302, 0.47026115], dtype=np.float32).reshape(1, 1, 3)
+    std = np.array([0.28863828, 0.27408164, 0.27809835], dtype=np.float32).reshape(1, 1, 3)
 
     def __init__(self, opt, split='train', resize_keep_ratio=False, multiscale_mode='value'):
         self.opt = opt
@@ -123,12 +121,7 @@ class HICO(Dataset):
         hoi_anns = self.hoi_annotations[img_id]['hoi_annotation']
         num_objs = min(len(anns), self.max_objs)
 
-        self._ensure_memcached()
-        value = mc.pyvector()
-        self.mclient.Get(img_path, value)
-        value_buf = mc.ConvertBuffer(value)
-        img_array = np.frombuffer(value_buf, np.uint8)
-        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        img = self.read_img_with_mc(img_path)
 
         height, width = img.shape[0], img.shape[1]
         c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
@@ -192,6 +185,7 @@ class HICO(Dataset):
 
         bbox_ct = []
         num_rels = min(len(hoi_anns), self.max_rels)
+
         for k in range(num_objs):
             ann = anns[k]
             bbox = np.asarray(ann['bbox'])
@@ -254,6 +248,60 @@ class HICO(Dataset):
 
     def __len__(self):
         return len(self.ids)
+
+    def get_center_heatmap_target(self):
+        raise NotImplementedError
+
+    def data_augmentation(self, img,  w, h, keep_res=False, rand_crop=False, flip=False, pad=31, scale=1, shift=0.1, down_ratio=4):
+        height, width = img.shape[0], img.shape[1]
+        c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
+        if keep_res:
+            input_h = (height | pad) + 1
+            input_w = (width | pad) + 1
+            s = np.array([input_w, input_h], dtype=np.float32)
+        else:
+            s = max(img.shape[0], img.shape[1]) * 1.0
+            input_h, input_w = h, w
+            if rand_crop:
+                s = s * np.random.choice(np.arange(0.7, 1.4, 0.1))
+                w_border = self._get_border(128, img.shape[1])
+                h_border = self._get_border(128, img.shape[0])
+                c[0] = np.random.randint(low=w_border, high=img.shape[1] - w_border)
+                c[1] = np.random.randint(low=h_border, high=img.shape[0] - h_border)
+            else:
+                sf = scale
+                cf = shift
+                c[0] += s * np.clip(np.random.randn() * cf, -2 * cf, 2 * cf)
+                c[1] += s * np.clip(np.random.randn() * cf, -2 * cf, 2 * cf)
+                s = s * np.clip(np.random.randn() * sf + 1, 1 - sf, 1 + sf)
+
+            if np.random.random() < flip:
+                flipped = True
+                img = img[:, ::-1, :]
+                c[0] = width - c[0] - 1
+
+        trans_input = get_affine_transform(
+            c, s, 0, [input_w, input_h])
+        inp = cv2.warpAffine(img, trans_input,
+                             (input_w, input_h),
+                             flags=cv2.INTER_LINEAR)
+        inp = (inp.astype(np.float32) / 255.)
+        if self.split == 'train' and not self.opt.no_color_aug:
+            color_aug(self._data_rng, inp, self._eig_val, self._eig_vec)
+
+        output_h = input_h // down_ratio
+        output_w = input_w // down_ratio
+        trans_output = get_affine_transform(c, s, 0, [output_w, output_h])
+        return inp, trans_output
+
+    def read_img_with_mc(self, img_path):
+        self._ensure_memcached()
+        value = mc.pyvector()
+        self.mclient.Get(img_path, value)
+        value_buf = mc.ConvertBuffer(value)
+        img_array = np.frombuffer(value_buf, np.uint8)
+        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        return img
 
     def shuffle(self):
         random.shuffle(self.ids)

@@ -82,9 +82,9 @@ class opts(object):
         # train
         self.parser.add_argument('--lr', type=float, default=1.25e-4,
                                  help='learning rate for batch size 32.')
-        self.parser.add_argument('--lr_step', type=str, default='40,50',
+        self.parser.add_argument('--lr_step', type=str, default='90,120',
                                  help='drop learning rate by 10.')
-        self.parser.add_argument('--num_epochs', type=int, default=60,
+        self.parser.add_argument('--num_epochs', type=int, default=140,
                                  help='total training epochs.')
         self.parser.add_argument('--batch_size', type=int, default=32,
                                  help='batch size')
@@ -166,6 +166,9 @@ class opts(object):
         # dist train
         self.parser.add_argument('--dist', action='store_true')
         self.parser.add_argument('--slurm', action='store_true')
+        self.parser.add_argument('--apex', action='store_true')
+        self.parser.add_argument('--fp16', action='store_true')
+        self.parser.add_argument('--sync_bn', action='store_true')
         self.parser.add_argument('--rank', type=int, default=0)
         self.parser.add_argument('--port', type=int, default=29300)
 

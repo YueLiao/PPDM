@@ -56,7 +56,7 @@ def main(opt):
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
             batch_sampler=batch_sampler_train,
-            num_workers=1,
+            num_workers=opt.num_workers,
             pin_memory=True)
     else:
         trainer.set_device(opt.gpus, opt.chunk_sizes, opt.device)

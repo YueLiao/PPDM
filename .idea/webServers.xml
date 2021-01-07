@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="e1a0ca6e-049e-400d-848a-b800f7dc9e7e" name="1984" url="http://10.198.4.31">
+        <fileTransfer host="10.198.4.31" port="21" rootFolder="/lustre/liaoyue">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="21" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
