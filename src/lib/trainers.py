@@ -126,6 +126,7 @@ class Hoidet(object):
             from torch.nn.parallel import DistributedDataParallel as DDP
             self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank], find_unused_parameters=True)
 
+
     def run_epoch(self, model_with_loss, epoch, data_loader, phase='train'):
         opt = self.opt
         results = {}
