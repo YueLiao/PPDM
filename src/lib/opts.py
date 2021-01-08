@@ -177,8 +177,12 @@ class opts(object):
             opt = self.parser.parse_args()
         else:
             opt = self.parser.parse_args(args)
-        if opt.slurm:
-            self.init_slurm(opt)
+        if opt.dist:
+            if opt.slurm:
+                self._init_slurm(opt)
+            else:
+                self._init_dist_pytorch(opt)
+            self.setup_print(opt.rank == 0)
 
         opt.gpus_str = opt.gpus
         opt.gpus = [int(gpu) for gpu in opt.gpus.split(',')]
@@ -279,7 +283,7 @@ class opts(object):
 
         return opt
 
-    def init_slurm(self, opt):
+    def _init_slurm(self, opt):
         import subprocess, torch
         proc_id = int(os.environ['SLURM_PROCID'])
         ntasks = int(os.environ['SLURM_NTASKS'])
@@ -293,7 +297,11 @@ class opts(object):
         os.environ['RANK'] = str(proc_id)
         os.environ['LOCAL_RANK'] = str(proc_id % num_gpus)
         opt.rank = proc_id
-        self.setup_print(proc_id == 0)
+
+
+    def _init_dist_pytorch(self, opt):
+        opt.rank = int(os.environ['RANK'])
+
 
     @staticmethod
     def setup_print(is_master):

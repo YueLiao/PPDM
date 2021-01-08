@@ -44,7 +44,9 @@ def main(opt):
             local_rank = int(os.environ.get('LOCAL_RANK') or 0)
             trainer.set_dist(local_rank)
         else:
-            raise NotImplementedError
+            num_gpus = torch.cuda.device_count()
+            local_rank = opt.rank % num_gpus
+            trainer.set_dist(local_rank)
 
         num_replicas = dist.get_world_size()
         opt.batch_size = opt.batch_size // num_replicas

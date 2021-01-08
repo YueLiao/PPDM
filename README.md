@@ -9,42 +9,42 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 ## Checklist
 - [x] Training code and test code on HICO-Det dataset. (2020-03-11)
 - [x] Training code and test code on HOI-A dataset. (2020-03-11)
-- [ ] HOI-A dataset.
-- [ ] Image demo.
-- [ ] Video demo.
-- [ ] PPDM for video HOI detection.
-- [ ] PPDM for human-centric relationship segmentation.
+
 
 
 ## Getting Started
 ### Installation
-   The code was tested on Ubuntu 16.04, with Python 3.6 and PyTorch v0.4.1.
+   The code was tested on Ubuntu 16.04, with CUDA 10.1, Python 3.7 and PyTorch v1.5.1.
 
 1. Clone this repository.
 
     ~~~
     git clone https://github.com/YueLiao/PPDM.git $PPDM_ROOT
     ~~~
-2. Install pytorch0.4.1.
+2. Install pytorch1.5.1.
 
     ~~~
-    conda install pytorch=0.4.1 torchvision -c pytorch
+    conda install pytorch=1.5 cudatoolkit=10.1 torchvision -c pytorch
     ~~~
 3. Install the requirements.
     
     ~~~
     pip install -r requirements.txt
     ~~~
-4. Compile deformable convolutional (from [DCNv2](https://github.com/CharlesShang/DCNv2/tree/pytorch_0.4)).
+4. (Optional) Install Apex for speed-up and fp16 training.
+
+    ~~~
+    git clone https://github.com/jackroos/apex
+    cd ./apex
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    ~~~  
+    
+5. Compile deformable convolutional (from [DCNv2](https://github.com/MatthewHowe/DCNv2.git)).
 
     ~~~
     cd $PPDM_ROOT/src/lib/models/networks/DCNv2
     ./make.sh
     ~~~
-### Demo
-1. Image Demo
-
-2. Video Demo
 
 
 ## Training and Test
