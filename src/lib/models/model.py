@@ -91,11 +91,12 @@ class HoidetLoss(torch.nn.Module):
         self.crit_wh = self.crit_reg
         self.opt = opt
         self.states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss',
-                            'sub_offset_loss', 'obj_offset_loss']
+                       'sub_offset_loss', 'obj_offset_loss']
 
     def forward(self, outputs, batch):
         opt = self.opt
         hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
+
         for s in range(opt.num_stacks):
             output = outputs[s]
             output['hm'] = clamped_sigmoid(output['hm'])

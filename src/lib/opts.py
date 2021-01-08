@@ -177,6 +177,8 @@ class opts(object):
             opt = self.parser.parse_args()
         else:
             opt = self.parser.parse_args(args)
+        if opt.slurm:
+            self.init_slurm(opt)
 
         opt.gpus_str = opt.gpus
         opt.gpus = [int(gpu) for gpu in opt.gpus.split(',')]
@@ -185,7 +187,6 @@ class opts(object):
         opt.test_scales = [float(i) for i in opt.test_scales.split(',')]
 
         opt.fix_res = not opt.keep_res
-        print('Fix size testing.' if opt.fix_res else 'Keep resolution testing.')
         opt.reg_offset = not opt.not_reg_offset
 
         if opt.head_conv == -1:  # init default head_conv
@@ -211,7 +212,8 @@ class opts(object):
             if i < rest_batch_size % (len(opt.gpus) - 1):
                 slave_chunk_size += 1
             opt.chunk_sizes.append(slave_chunk_size)
-        print('training chunk_sizes:', opt.chunk_sizes)
+        if not opt.dist:
+            print('training chunk_sizes:', opt.chunk_sizes)
 
         opt.root_dir = os.path.join(os.path.dirname(__file__), '..', '..')
         opt.data_dir = os.path.join(opt.root_dir, 'data')
@@ -225,8 +227,7 @@ class opts(object):
                 else opt.save_dir
             opt.load_model = os.path.join(model_path, 'model_last.pth')
         
-        if opt.slurm:
-            self.init_slurm(opt)
+
         return opt
 
     @staticmethod
