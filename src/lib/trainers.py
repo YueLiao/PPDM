@@ -143,10 +143,10 @@ class Hoidet(object):
         ret, results = self.run_epoch(model_with_loss, epoch, data_loader)
         return ret, results
 
+    @torch.no_grad()
     def val(self, epoch, data_loader):
         model_with_loss = self.model_with_loss
         model_with_loss.eval()
         torch.cuda.empty_cache()
-        with torch.no_grad:
-            ret, results = self.run_epoch(model_with_loss, epoch, data_loader, phase='val')
+        ret, results = self.run_epoch(model_with_loss, epoch, data_loader, phase='val')
         return ret, results
