@@ -34,6 +34,7 @@ def load_model(model, model_path, optimizer=None, resume=False,
     model_state_dict = model.state_dict()
 
     # check loaded parameters and created model parameters
+    optimizer_grouped_parameters = []
     for k in state_dict:
         if k in model_state_dict:
             if state_dict[k].shape != model_state_dict[k].shape:

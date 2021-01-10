@@ -84,7 +84,7 @@ def main(opt):
             for k, v in log_dict_train.items():
                 logger.scalar_summary('train_{}'.format(k), v, epoch)
                 logger.write('{} {:8f} | '.format(k, v))
-            if epoch > 40:
+            if epoch > 110:
                 save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
                            epoch, model, optimizer)
             else:

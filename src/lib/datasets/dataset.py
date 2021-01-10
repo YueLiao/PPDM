@@ -156,6 +156,10 @@ class HOIDataset(Dataset):
             hoi = hoi_anns[k]
             if isinstance(hoi['category_id'], str):
                 hoi['category_id'] = int(hoi['category_id'].replace('\n', ''))
-            hoi_cate = int(self.cat_ids_verb[hoi['category_id']])
-            hoi_list.append([int(hoi['subject_id']), int(hoi['object_id']), hoi_cate])
+            if isinstance(hoi['category_id'], int):
+                hoi_cate = int(self.cat_ids_verb[hoi['category_id']])
+                hoi_list.append([int(hoi['subject_id']), int(hoi['object_id']), hoi_cate])
+            if isinstance(hoi['category_id'], list):
+                for hoi_cate in hoi['category_id']:
+                    hoi_list.append([int(hoi['subject_id']), int(hoi['object_id']), int(self.cat_ids_verb[hoi_cate])])
         return hoi_list

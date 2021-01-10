@@ -14,14 +14,14 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 
 ## Getting Started
 ### Installation
-   The code was tested on Ubuntu 16.04, with CUDA 10.1, Python 3.7 and PyTorch v1.5.1.
+   The code was tested on Ubuntu 16.04, with CUDA 10.1, Python 3.7 and PyTorch v1.5.1 (also support PyTorch 0.4.1/1.1 with CUDA 9.0)
 
 1. Clone this repository.
 
     ~~~
     git clone https://github.com/YueLiao/PPDM.git $PPDM_ROOT
     ~~~
-2. Install pytorch1.5.1.
+2. Install  pytorch 0.4.1, pytorch 1.1 with cuda 9.0 or pytorch1.5.1 with CUDA 10.1.
 
     ~~~
     conda install pytorch=1.5 cudatoolkit=10.1 torchvision -c pytorch
@@ -31,7 +31,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     ~~~
     pip install -r requirements.txt
     ~~~
-4. (Optional) Install Apex for speed-up and fp16 training.
+4. (Optional) Install Apex for speed-up and fp16 training (only support CUDA >= 10).
 
     ~~~
     git clone https://github.com/jackroos/apex
@@ -39,7 +39,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
     ~~~  
     
-5. Compile deformable convolutional (from [DCNv2](https://github.com/MatthewHowe/DCNv2.git)).
+5. Compile deformable convolutional (from [DCNv2 PyTorch 1.5 CUDA 10](https://github.com/MatthewHowe/DCNv2.git)).
 
     ~~~
     cd $PPDM_ROOT/src/lib/models/networks/DCNv2
