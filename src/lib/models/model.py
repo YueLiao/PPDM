@@ -250,10 +250,10 @@ class MinCostMatcher(nn.Module):
 
 
 class SetLoss(nn.Module):
-    def __init__(self, opt, matcher=MinCostMatcher):
-        self.opt = opt
-        self.matcher = matcher(opt)
+    def __init__(self, opt, Matcher=MinCostMatcher):
         super(SetLoss, self).__init__()
+        self.opt = opt
+        self.matcher = Matcher(opt)
         self.crit = FocalLoss()
         self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
             RegLoss() if opt.reg_loss == 'sl1' else None
