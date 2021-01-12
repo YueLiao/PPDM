@@ -148,14 +148,116 @@ class HoidetLoss(nn.Module):
         return loss, loss_states
 
 
-class SetLoss(nn.Module):
+class MinCostMatcher(nn.Module):
+    """This class computes an assignment between the targets and the predictions of the network
+
+    For efficiency reasons, the targets don't include the no_object. Because of this, in general,
+    there are more predictions than targets. In this case, we do a 1-to-1 matching of the best predictions,
+    while the others are un-matched (and thus treated as non-objects).
+    """
     def __init__(self, opt):
+        """Creates the matcher
+
+        Params:
+            cost_class: This is the relative weight of the classification error in the matching cost
+            cost_bbox: This is the relative weight of the L1 error of the bounding box coordinates in the matching cost
+            cost_giou: This is the relative weight of the giou loss of the bounding box in the matching cost
+        """
+        super().__init__()
+        self.cost_class = 1
+        self.cost_bbox = 1
+        self.cost_giou = 1
+        self.focal_loss_alpha = 0.25
+        self.focal_loss_gamma = 2
+        if self.cost_class == 0 and self.cost_bbox == 0 and self.cost_giou == 0:
+            raise ValueError('The weight of matcher must not be all zero')
+
+    @torch.no_grad()
+    def forward(self, outputs, targets):
+        """ Performs the matching
+
+        Params:
+            outputs: This is a dict that contains at least these entries:
+                 "pred_logits": Tensor of dim [batch_size, num_queries, num_classes] with the classification logits
+                 "pred_boxes": Tensor of dim [batch_size, num_queries, 4] with the predicted box coordinates
+
+            targets: This is a list of targets (len(targets) = batch_size), where each target is a dict containing:
+                 "labels": Tensor of dim [num_target_boxes] (where num_target_boxes is the number of ground-truth
+                           objects in the target) containing the class labels
+                 "boxes": Tensor of dim [num_target_boxes, 4] containing the target box coordinates
+
+        Returns:
+            A list of size batch_size, containing tuples of (index_i, index_j) where:
+                - index_i is the indices of the selected predictions (in order)
+                - index_j is the indices of the corresponding selected targets (in order)
+            For each batch element, it holds:
+                len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
+        """
+
+        bs, k, h, w = outputs["pred_logits"].shape
+
+        # We flatten to compute the cost matrices in a batch
+
+        batch_out_prob = outputs["pred_logits"].permute(0, 2, 3, 1).reshape(
+            bs, h * w, k).sigmoid()  # [batch_size, num_queries, num_classes]
+        batch_out_bbox = outputs["pred_boxes"].permute(0, 2, 3, 1).reshape(
+            bs, h * w, 4)  # [batch_size, num_queries, 4]
+
+        indices = []
+
+        for i in range(bs):
+            tgt_ids = targets[i]["labels"]
+
+            if tgt_ids.shape[0] == 0:
+                indices.append(([], []))
+                continue
+
+            tgt_bbox = targets[i]["boxes_xyxy"]
+            out_prob = batch_out_prob[i]
+            out_bbox = batch_out_bbox[i]
+
+            # Compute the classification cost.
+            alpha = self.focal_loss_alpha
+            gamma = self.focal_loss_gamma
+            neg_cost_class = (1 - alpha) * (out_prob**gamma) * (
+                -(1 - out_prob + 1e-8).log())
+            pos_cost_class = alpha * (
+                (1 - out_prob)**gamma) * (-(out_prob + 1e-8).log())
+            cost_class = pos_cost_class[:, tgt_ids] - neg_cost_class[:,
+                                                                     tgt_ids]
+
+            # Compute the L1 cost between boxes
+            image_size_out = targets[i]["image_size_xyxy"].unsqueeze(0).repeat(
+                h * w, 1)
+            image_size_tgt = targets[i]["image_size_xyxy_tgt"]
+
+            out_bbox_ = out_bbox / image_size_out
+            tgt_bbox_ = tgt_bbox / image_size_tgt
+            cost_bbox = torch.cdist(out_bbox_, tgt_bbox_, p=1)
+
+            # Compute the giou cost betwen boxes
+            cost_giou = -generalized_box_iou(out_bbox, tgt_bbox)
+
+            # Final cost matrix
+            C = self.cost_bbox * cost_bbox + self.cost_class * cost_class + self.cost_giou * cost_giou
+
+            _, src_ind = torch.min(C, dim=0)
+            tgt_ind = torch.arange(len(tgt_ids)).to(src_ind)
+            indices.append((src_ind, tgt_ind))
+
+        return [(torch.as_tensor(i, dtype=torch.int64),
+                 torch.as_tensor(j, dtype=torch.int64)) for i, j in indices]
+
+
+class SetLoss(nn.Module):
+    def __init__(self, opt, matcher=MinCostMatcher):
+        self.opt = opt
+        self.matcher = matcher(opt)
         super(SetLoss, self).__init__()
         self.crit = FocalLoss()
         self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
             RegLoss() if opt.reg_loss == 'sl1' else None
         self.crit_wh = self.crit_reg
-        self.opt = opt
         self.states = [
             'loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss',
             'sub_offset_loss', 'obj_offset_loss'
@@ -364,110 +466,6 @@ class SetCriterion(nn.Module):
                 self.get_loss(loss, outputs, targets, indices, num_boxes))
 
         return losses
-
-
-class MinCostMatcher(nn.Module):
-    """This class computes an assignment between the targets and the predictions of the network
-
-    For efficiency reasons, the targets don't include the no_object. Because of this, in general,
-    there are more predictions than targets. In this case, we do a 1-to-1 matching of the best predictions,
-    while the others are un-matched (and thus treated as non-objects).
-    """
-    def __init__(self,
-                 cfg,
-                 cost_class: float = 1,
-                 cost_bbox: float = 1,
-                 cost_giou: float = 1):
-        """Creates the matcher
-
-        Params:
-            cost_class: This is the relative weight of the classification error in the matching cost
-            cost_bbox: This is the relative weight of the L1 error of the bounding box coordinates in the matching cost
-            cost_giou: This is the relative weight of the giou loss of the bounding box in the matching cost
-        """
-        super().__init__()
-        self.cost_class = cost_class
-        self.cost_bbox = cost_bbox
-        self.cost_giou = cost_giou
-        self.focal_loss_alpha = cfg.MODEL.OneNet.ALPHA
-        self.focal_loss_gamma = cfg.MODEL.OneNet.GAMMA
-        assert cost_class != 0 or cost_bbox != 0 or cost_giou != 0, "all costs cant be 0"
-
-    @torch.no_grad()
-    def forward(self, outputs, targets):
-        """ Performs the matching
-
-        Params:
-            outputs: This is a dict that contains at least these entries:
-                 "pred_logits": Tensor of dim [batch_size, num_queries, num_classes] with the classification logits
-                 "pred_boxes": Tensor of dim [batch_size, num_queries, 4] with the predicted box coordinates
-
-            targets: This is a list of targets (len(targets) = batch_size), where each target is a dict containing:
-                 "labels": Tensor of dim [num_target_boxes] (where num_target_boxes is the number of ground-truth
-                           objects in the target) containing the class labels
-                 "boxes": Tensor of dim [num_target_boxes, 4] containing the target box coordinates
-
-        Returns:
-            A list of size batch_size, containing tuples of (index_i, index_j) where:
-                - index_i is the indices of the selected predictions (in order)
-                - index_j is the indices of the corresponding selected targets (in order)
-            For each batch element, it holds:
-                len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
-        """
-
-        bs, k, h, w = outputs["pred_logits"].shape
-
-        # We flatten to compute the cost matrices in a batch
-
-        batch_out_prob = outputs["pred_logits"].permute(0, 2, 3, 1).reshape(
-            bs, h * w, k).sigmoid()  # [batch_size, num_queries, num_classes]
-        batch_out_bbox = outputs["pred_boxes"].permute(0, 2, 3, 1).reshape(
-            bs, h * w, 4)  # [batch_size, num_queries, 4]
-
-        indices = []
-
-        for i in range(bs):
-            tgt_ids = targets[i]["labels"]
-
-            if tgt_ids.shape[0] == 0:
-                indices.append(([], []))
-                continue
-
-            tgt_bbox = targets[i]["boxes_xyxy"]
-            out_prob = batch_out_prob[i]
-            out_bbox = batch_out_bbox[i]
-
-            # Compute the classification cost.
-            alpha = self.focal_loss_alpha
-            gamma = self.focal_loss_gamma
-            neg_cost_class = (1 - alpha) * (out_prob**gamma) * (
-                -(1 - out_prob + 1e-8).log())
-            pos_cost_class = alpha * (
-                (1 - out_prob)**gamma) * (-(out_prob + 1e-8).log())
-            cost_class = pos_cost_class[:, tgt_ids] - neg_cost_class[:,
-                                                                     tgt_ids]
-
-            # Compute the L1 cost between boxes
-            image_size_out = targets[i]["image_size_xyxy"].unsqueeze(0).repeat(
-                h * w, 1)
-            image_size_tgt = targets[i]["image_size_xyxy_tgt"]
-
-            out_bbox_ = out_bbox / image_size_out
-            tgt_bbox_ = tgt_bbox / image_size_tgt
-            cost_bbox = torch.cdist(out_bbox_, tgt_bbox_, p=1)
-
-            # Compute the giou cost betwen boxes
-            cost_giou = -generalized_box_iou(out_bbox, tgt_bbox)
-
-            # Final cost matrix
-            C = self.cost_bbox * cost_bbox + self.cost_class * cost_class + self.cost_giou * cost_giou
-
-            _, src_ind = torch.min(C, dim=0)
-            tgt_ind = torch.arange(len(tgt_ids)).to(src_ind)
-            indices.append((src_ind, tgt_ind))
-
-        return [(torch.as_tensor(i, dtype=torch.int64),
-                 torch.as_tensor(j, dtype=torch.int64)) for i, j in indices]
 
 
 def dist_ok():
