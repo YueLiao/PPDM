@@ -159,6 +159,16 @@ def generalized_box_iou(boxes1, boxes2):
     return iou - (area - union) / area
 
 
+class GIouLoss(nn.Module):
+    '''nn.Module warpper for focal loss'''
+
+    def __init__(self):
+        super(GIouLoss, self).__init__()
+
+    def forward(self, out, target):
+        return 1 - torch.diag(generalized_box_iou(out, target))
+
+
 class FocalLoss(nn.Module):
     '''nn.Module warpper for focal loss'''
 
