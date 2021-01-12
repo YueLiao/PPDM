@@ -131,6 +131,68 @@ class HoidetLoss(nn.Module):
         return loss, loss_states
 
 
+class SetLoss(nn.Module):
+    def __init__(self, opt):
+        super(SetLoss, self).__init__()
+        self.crit = FocalLoss()
+        self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
+            RegLoss() if opt.reg_loss == 'sl1' else None
+        self.crit_wh = self.crit_reg
+        self.opt = opt
+        self.states = ['loss', 'hm_loss', 'wh_loss', 'off_loss', 'hm_rel_loss',
+                       'sub_offset_loss', 'obj_offset_loss']
+
+    def forward(self, outputs, batch):
+        opt = self.opt
+        hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
+
+        for s in range(opt.num_stacks):
+            output = outputs[s]
+
+            hm_loss_, hm_rel_loss_ = self.loss_cls(output, batch)
+            hm_loss += hm_loss_
+            hm_rel_loss += hm_rel_loss_
+
+            wh_loss_, sub_offset_loss_, obj_offset_loss_, off_loss_ = self.loss_reg(output, batch)
+            wh_loss += wh_loss_
+            sub_offset_loss += sub_offset_loss_
+            obj_offset_loss += obj_offset_loss_
+            off_loss += off_loss_
+
+        loss = opt.hm_weight * (hm_loss + hm_rel_loss) + opt.wh_weight * (
+               wh_loss + sub_offset_loss + obj_offset_loss) + opt.off_weight * off_loss
+        loss_states = {'loss': loss, 'hm_loss': hm_loss,
+                       'wh_loss': wh_loss, 'off_loss': off_loss, 'hm_rel_loss': hm_rel_loss,
+                       'sub_offset_loss': sub_offset_loss, 'obj_offset_loss': obj_offset_loss}
+        return loss, loss_states
+
+    def loss_cls(self, output, batch):
+        output['hm'] = clamped_sigmoid(output['hm'])
+        output['hm_rel'] = clamped_sigmoid(output['hm_rel'])
+        hm_loss = self.crit(output['hm'], batch['hm']) / self.opt.num_stacks
+        hm_rel_loss = self.crit(output['hm_rel'], batch['hm_rel']) / self.opt.num_stacks
+        return hm_loss, hm_rel_loss
+
+    def loss_reg(self, output, batch):
+        wh_loss, sub_offset_loss, obj_offset_loss, off_loss = 0, 0, 0, 0
+        if self.opt.wh_weight > 0:
+            wh_loss = self.crit_reg(
+                output['wh'], batch['reg_mask'],
+                batch['ind'], batch['wh']) / self.opt.num_stacks
+            sub_offset_loss = self.crit_reg(
+                output['sub_offset'], batch['offset_mask'],
+                batch['rel_ind'], batch['sub_offset']
+            )
+            obj_offset_loss = self.crit_reg(
+                output['obj_offset'], batch['offset_mask'],
+                batch['rel_ind'], batch['obj_offset']
+            )
+        if self.opt.reg_offset and self.opt.off_weight > 0:
+            off_loss = self.crit_reg(output['reg'], batch['reg_mask'],
+                                     batch['ind'], batch['reg']) / self.opt.num_stacks
+        return wh_loss, sub_offset_loss, obj_offset_loss, off_loss
+
+
 class SetCriterion(nn.Module):
     """ This class computes the loss for OneNet.
     The process happens in two steps:
@@ -223,35 +285,6 @@ class SetCriterion(nn.Module):
         return losses
 
 
-    def loss_boxes(self, outputs, targets, indices, num_boxes):
-        """Compute the losses related to the bounding boxes, the L1 regression loss and the GIoU loss
-           targets dicts must contain the key "boxes" containing a tensor of dim [nb_target_boxes, 4]
-           The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
-        """
-        assert 'pred_boxes' in outputs
-        idx = self._get_src_permutation_idx(indices)
-        
-        src_boxes = outputs['pred_boxes']
-        bs, k, h, w = src_boxes.shape
-        src_boxes = src_boxes.permute(0, 2, 3, 1).reshape(bs, h*w, k)
-        
-        src_boxes = src_boxes[idx]
-        target_boxes = torch.cat([t['boxes_xyxy'][i] for t, (_, i) in zip(targets, indices)], dim=0)
-
-        losses = {}
-        loss_giou = 1 - torch.diag(box_ops.generalized_box_iou(src_boxes, target_boxes))
-        losses['loss_giou'] = loss_giou.sum() / num_boxes
-
-        image_size = torch.cat([v["image_size_xyxy_tgt"] for v in targets])
-        src_boxes_ = src_boxes / image_size
-        target_boxes_ = target_boxes / image_size
-
-        loss_bbox = F.l1_loss(src_boxes_, target_boxes_, reduction='none')
-        losses['loss_bbox'] = loss_bbox.sum() / num_boxes
-
-        return losses
-
-
     def _get_src_permutation_idx(self, indices):
         # permute predictions following indices
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(indices)])
@@ -297,6 +330,7 @@ class SetCriterion(nn.Module):
             losses.update(self.get_loss(loss, outputs, targets, indices, num_boxes))
 
         return losses
+
 
 
 class MinCostMatcher(nn.Module):
