@@ -265,21 +265,15 @@ class SetLoss(nn.Module):
 
     def forward(self, outputs, batch):
         opt = self.opt
-        hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
+        # hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
+        losses = [0, 0, 0, 0, 0, 0]
 
         for s in range(opt.num_stacks):
             output = outputs[s]
+            losses_ = self.loss(output, batch)
+            losses = [i + x for i, x in zip(losses, losses_)]
 
-            hm_loss_, hm_rel_loss_ = self.loss_cls(output, batch)
-            hm_loss += hm_loss_
-            hm_rel_loss += hm_rel_loss_
-
-            wh_loss_, sub_offset_loss_, obj_offset_loss_, off_loss_ = self.loss_reg(
-                output, batch)
-            wh_loss += wh_loss_
-            sub_offset_loss += sub_offset_loss_
-            obj_offset_loss += obj_offset_loss_
-            off_loss += off_loss_
+        hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = losses
 
         loss = opt.hm_weight * (hm_loss + hm_rel_loss) + opt.wh_weight * (
             wh_loss + sub_offset_loss +
@@ -294,6 +288,12 @@ class SetLoss(nn.Module):
             'obj_offset_loss': obj_offset_loss
         }
         return loss, loss_states
+
+    def loss(self, output, batch):
+        hm_loss, hm_rel_loss = self.loss_cls(output, batch)
+        wh_loss, sub_offset_loss, obj_offset_loss, off_loss = self.loss_reg(
+            output, batch)
+        return hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss
 
     def loss_cls(self, output, batch):
         output['hm'] = clamped_sigmoid(output['hm'])
