@@ -173,15 +173,15 @@ class MinCostMatcher(nn.Module):
             raise ValueError('The weight of matcher must not be all zero')
 
     @torch.no_grad()
-    def forward(self, outputs, targets):
+    def forward(self, output, batch):
         """ Performs the matching
 
         Params:
-            outputs: This is a dict that contains at least these entries:
-                 "pred_logits": Tensor of dim [batch_size, num_queries, num_classes] with the classification logits
+            output: This is a dict that contains at least these entries:
+                 "hm_rel": Tensor of dim [batch_size, num_queries, num_classes] with the classification logits
                  "pred_boxes": Tensor of dim [batch_size, num_queries, 4] with the predicted box coordinates
 
-            targets: This is a list of targets (len(targets) = batch_size), where each target is a dict containing:
+            batch: This is a list of targets (len(targets) = batch_size), where each target is a dict containing:
                  "labels": Tensor of dim [num_target_boxes] (where num_target_boxes is the number of ground-truth
                            objects in the target) containing the class labels
                  "boxes": Tensor of dim [num_target_boxes, 4] containing the target box coordinates
@@ -194,27 +194,28 @@ class MinCostMatcher(nn.Module):
                 len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
         """
 
-        bs, k, h, w = outputs["pred_logits"].shape
+        bs, k, h, w = output['hm_rel'].shape
 
         # We flatten to compute the cost matrices in a batch
 
-        batch_out_prob = outputs["pred_logits"].permute(0, 2, 3, 1).reshape(
+        batch_out_prob = output['hm_rel'].permute(0, 2, 3, 1).reshape(
             bs, h * w, k).sigmoid()  # [batch_size, num_queries, num_classes]
-        batch_out_bbox = outputs["pred_boxes"].permute(0, 2, 3, 1).reshape(
-            bs, h * w, 4)  # [batch_size, num_queries, 4]
+        batch_out_offset = torch.cat(
+            [output['obj_offset'], output['sub_offset']],
+            1).permute(0, 2, 3, 1).reshape(bs, h * w, 4)  # [batch_size, num_queries, 4]
 
         indices = []
 
         for i in range(bs):
-            tgt_ids = targets[i]["labels"]
+            tgt_ids = batch['hm_rel'][i]
 
             if tgt_ids.shape[0] == 0:
                 indices.append(([], []))
                 continue
 
-            tgt_bbox = targets[i]["boxes_xyxy"]
             out_prob = batch_out_prob[i]
-            out_bbox = batch_out_bbox[i]
+            out_offset = batch_out_offset[i]
+            tgt_offset = batch['offset'][i]
 
             # Compute the classification cost.
             alpha = self.focal_loss_alpha
@@ -226,20 +227,18 @@ class MinCostMatcher(nn.Module):
             cost_class = pos_cost_class[:, tgt_ids] - neg_cost_class[:,
                                                                      tgt_ids]
 
+            import pdb; pdb.set_trace()
             # Compute the L1 cost between boxes
-            image_size_out = targets[i]["image_size_xyxy"].unsqueeze(0).repeat(
-                h * w, 1)
-            image_size_tgt = targets[i]["image_size_xyxy_tgt"]
+            # image_size_out = targets[i]["image_size_xyxy"].unsqueeze(0).repeat(
+            #     h * w, 1)
+            # image_size_tgt = targets[i]["image_size_xyxy_tgt"]
 
-            out_bbox_ = out_bbox / image_size_out
-            tgt_bbox_ = tgt_bbox / image_size_tgt
-            cost_bbox = torch.cdist(out_bbox_, tgt_bbox_, p=1)
-
-            # Compute the giou cost betwen boxes
-            cost_giou = -generalized_box_iou(out_bbox, tgt_bbox)
+            # out_bbox_ = out_bbox / image_size_out
+            # tgt_bbox_ = tgt_bbox / image_size_tgt
+            # cost_bbox = torch.cdist(out_bbox_, tgt_bbox_, p=1)
 
             # Final cost matrix
-            C = self.cost_bbox * cost_bbox + self.cost_class * cost_class + self.cost_giou * cost_giou
+            C = self.cost_bbox * cost_bbox + self.cost_class * cost_class
 
             _, src_ind = torch.min(C, dim=0)
             tgt_ind = torch.arange(len(tgt_ids)).to(src_ind)
@@ -354,8 +353,8 @@ class SetCriterion(nn.Module):
         """Classification loss (NLL)
         targets dicts must contain the key "labels" containing a tensor of dim [nb_target_boxes]
         """
-        assert 'pred_logits' in outputs
-        src_logits = outputs['pred_logits']
+        assert 'hm_rel' in outputs
+        src_logits = outputs['hm_rel']
         bs, k, h, w = src_logits.shape
         src_logits = src_logits.permute(0, 2, 3, 1).reshape(bs, h * w, k)
 
