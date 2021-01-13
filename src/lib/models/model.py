@@ -165,11 +165,10 @@ class MinCostMatcher(nn.Module):
         """
         super().__init__()
         self.cost_class = 1
-        self.cost_bbox = 1
-        self.cost_giou = 1
+        self.cost_offset = 1
         self.focal_loss_alpha = 0.25
         self.focal_loss_gamma = 2
-        if self.cost_class == 0 and self.cost_bbox == 0 and self.cost_giou == 0:
+        if self.cost_class == 0 and self.cost_offset == 0:
             raise ValueError('The weight of matcher must not be all zero')
 
     @torch.no_grad()
@@ -203,6 +202,7 @@ class MinCostMatcher(nn.Module):
         batch_out_offset = torch.cat(
             [output['obj_offset'], output['sub_offset']],
             1).permute(0, 2, 3, 1).reshape(bs, h * w, 4)  # [batch_size, num_queries, 4]
+        batch_tgt_offset = batch['offset'].permute(0, 3, 4, 1, 2).reshape(bs, -1, h * w, 4)
 
         indices = []
 
@@ -215,7 +215,8 @@ class MinCostMatcher(nn.Module):
 
             out_prob = batch_out_prob[i]
             out_offset = batch_out_offset[i]
-            tgt_offset = batch['offset'][i]
+            index = batch['offset_mask'][i].nonzero().squeeze()
+            tgt_offset = batch_tgt_offset[i].index_select(0, index)
 
             # Compute the classification cost.
             alpha = self.focal_loss_alpha
@@ -227,18 +228,11 @@ class MinCostMatcher(nn.Module):
             cost_class = pos_cost_class[:, tgt_ids] - neg_cost_class[:,
                                                                      tgt_ids]
 
-            import pdb; pdb.set_trace()
             # Compute the L1 cost between boxes
-            # image_size_out = targets[i]["image_size_xyxy"].unsqueeze(0).repeat(
-            #     h * w, 1)
-            # image_size_tgt = targets[i]["image_size_xyxy_tgt"]
-
-            # out_bbox_ = out_bbox / image_size_out
-            # tgt_bbox_ = tgt_bbox / image_size_tgt
-            # cost_bbox = torch.cdist(out_bbox_, tgt_bbox_, p=1)
+            cost_offset = torch.cdist(tgt_offset, out_offset, p=1)
 
             # Final cost matrix
-            C = self.cost_bbox * cost_bbox + self.cost_class * cost_class
+            C = self.cost_offset * cost_offset + self.cost_class * cost_class
 
             _, src_ind = torch.min(C, dim=0)
             tgt_ind = torch.arange(len(tgt_ids)).to(src_ind)
@@ -269,6 +263,8 @@ class SetLoss(nn.Module):
 
         for s in range(opt.num_stacks):
             output = outputs[s]
+
+            indices = self.matcher(output, batch)
             losses_ = self.loss(output, batch)
             losses = [i + x for i, x in zip(losses, losses_)]
 
