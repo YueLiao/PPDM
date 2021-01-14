@@ -207,15 +207,15 @@ class MinCostMatcher(nn.Module):
         indices = []
 
         for i in range(bs):
-            tgt_ids = batch['hm_rel'][i]
+            index = batch['offset_mask'][i].nonzero().squeeze()
 
+            tgt_ids = batch['hm_rel'][i].index_select(0, index)
             if tgt_ids.shape[0] == 0:
                 indices.append(([], []))
                 continue
 
             out_prob = batch_out_prob[i]
             out_offset = batch_out_offset[i]
-            index = batch['offset_mask'][i].nonzero().squeeze()
             tgt_offset = batch_tgt_offset[i].index_select(0, index)
 
             # Compute the classification cost.
@@ -229,7 +229,7 @@ class MinCostMatcher(nn.Module):
                                                                      tgt_ids]
 
             # Compute the L1 cost between boxes
-            cost_offset = torch.cdist(tgt_offset, out_offset, p=1)
+            cost_offset = (tgt_offset - out_offset).sum(-1).permute(1, 0)
 
             # Final cost matrix
             C = self.cost_offset * cost_offset + self.cost_class * cost_class
