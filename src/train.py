@@ -52,12 +52,10 @@ def main(opt):
         opt.batch_size = opt.batch_size // num_replicas
         opt.num_workers = opt.num_workers // num_replicas
         train_sampler = DistributedSampler(train_dataset)
-        batch_sampler_train = torch.utils.data.BatchSampler(
-            train_sampler, opt.batch_size, drop_last=True
-        )
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
-            batch_sampler=batch_sampler_train,
+            sampler=train_sampler,
+            batch_size=opt.batch_size,
             num_workers=opt.num_workers,
             pin_memory=True)
     else:

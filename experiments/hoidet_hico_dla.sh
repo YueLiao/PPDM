@@ -17,5 +17,5 @@ srun -p ${PARTITION} \
     --cpus-per-task=${CPUS_PER_TASK} \
     --kill-on-bad-exit=1 \
     ${SRUN_ARGS} \
-    python -u  train.py Hoidet --exp_id hoidet_hico_dla_140epoch_v1_3e-4_64_list --batch_size 64  --lr 3e-4 --gpus 0,1,2,3,4,5,6,7 --num_workers 8 --val_intervals 100000 --image_dir images/train2015 --load_model ../models/ctdet_coco_dla_2x.pth --dataset hico --slurm --dist --apex --sync_bn --print_iter 100
+    python -u  train.py Hoidet --exp_id hoidet_hico_dla_140epoch_set_v2 --batch_size 32  --lr 3e-4 --gpus 0,1,2,3,4,5,6,7 --num_workers 8 --val_intervals 100000 --image_dir images/train2015 --load_model ../models/ctdet_coco_dla_2x.pth --dataset hico --slurm --dist --apex --sync_bn --print_iter 100
 
