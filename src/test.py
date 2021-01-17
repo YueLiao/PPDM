@@ -61,8 +61,8 @@ def prefetch_test(opt):
     for model_id in range(model_begin, model_end + 1):
         model_path = opt.save_dir[:-4] if opt.save_dir.endswith('TEST') else opt.save_dir
         if opt.load_model == '' or model_id > model_begin:
-            #opt.load_model = os.path.join(model_path, 'model_' + str(model_id) + '.pth')
-            opt.load_model = os.path.join(model_path, 'model_last.pth')
+            opt.load_model = os.path.join(model_path, 'model_' + str(model_id) + '.pth')
+            #opt.load_model = os.path.join(model_path, 'model_last.pth')
         detector = Detector(opt)
 
         data_loader = torch.utils.data.DataLoader(

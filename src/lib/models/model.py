@@ -229,7 +229,7 @@ class MinCostMatcher(nn.Module):
                                                                      tgt_ids]
 
             # Compute the L1 cost between boxes
-            cost_offset = (tgt_offset - out_offset).sum(-1).permute(1, 0)
+            cost_offset = torch.abs(tgt_offset - out_offset).sum(-1).permute(1, 0)
 
             # Final cost matrix
             C = self.cost_offset * cost_offset + self.cost_class * cost_class
