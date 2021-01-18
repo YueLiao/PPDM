@@ -106,7 +106,7 @@ class HoidetLoss(nn.Module):
 
     def forward(self, outputs, batch):
         opt = self.opt
-        hm_loss, wh_loss, off_loss, hm_rel_loss, offset_loss = 0, 0, 0, 0, 0, 0
+        hm_loss, wh_loss, off_loss, hm_rel_loss, sub_offset_loss, obj_offset_loss = 0, 0, 0, 0, 0, 0
 
         for s in range(opt.num_stacks):
             output = outputs[s]
@@ -155,6 +155,7 @@ class MinCostMatcher(nn.Module):
     there are more predictions than targets. In this case, we do a 1-to-1 matching of the best predictions,
     while the others are un-matched (and thus treated as non-objects).
     """
+
     def __init__(self, opt):
         """Creates the matcher
 
@@ -165,7 +166,7 @@ class MinCostMatcher(nn.Module):
         """
         super().__init__()
         self.cost_class = 1
-        self.cost_offset = 0.2
+        self.cost_offset = 1
         self.focal_loss_alpha = 0.25
         self.focal_loss_gamma = 2
         if self.cost_class == 0 and self.cost_offset == 0:
@@ -221,12 +222,12 @@ class MinCostMatcher(nn.Module):
             # Compute the classification cost.
             alpha = self.focal_loss_alpha
             gamma = self.focal_loss_gamma
-            neg_cost_class = (1 - alpha) * (out_prob**gamma) * (
+            neg_cost_class = (1 - alpha) * (out_prob ** gamma) * (
                 -(1 - out_prob + 1e-8).log())
             pos_cost_class = alpha * (
-                (1 - out_prob)**gamma) * (-(out_prob + 1e-8).log())
+                    (1 - out_prob) ** gamma) * (-(out_prob + 1e-8).log())
             cost_class = pos_cost_class[:, tgt_ids] - neg_cost_class[:,
-                                                                     tgt_ids]
+                                                      tgt_ids]
 
             # Compute the L1 cost between boxes
             cost_offset = torch.abs(tgt_offset - out_offset).sum(-1).permute(1, 0)
@@ -273,7 +274,7 @@ class SetLoss(nn.Module):
         hm_loss, wh_loss, off_loss, hm_rel_loss, offset_loss = losses
 
         loss = opt.hm_weight * (hm_loss + hm_rel_loss) + opt.wh_weight * (
-            wh_loss + offset_loss) + opt.off_weight * off_loss
+                wh_loss + offset_loss) + opt.off_weight * off_loss
         loss_states = {
             'loss': loss,
             'hm_loss': hm_loss,
@@ -326,8 +327,8 @@ class SetLoss(nn.Module):
         )
         hm_loss = self.crit(output['hm'], batch['hm']) / self.opt.num_stacks
         hm_rel_loss = output['hm_rel'] / self.opt.num_stacks
-        #output['hm_rel'] = clamped_sigmoid(output['hm_rel'])
-        #hm_rel_loss = self.crit(output['hm_rel'],
+        # output['hm_rel'] = clamped_sigmoid(output['hm_rel'])
+        # hm_rel_loss = self.crit(output['hm_rel'],
         #                        batch['hm_rel']) / self.opt.num_stacks
         return hm_loss, hm_rel_loss
 
@@ -342,14 +343,9 @@ class SetLoss(nn.Module):
             [output['sub_offset'], output['obj_offset']],
             1).permute(0, 2, 3, 1).reshape(bs, h * w, 4)
         src_offset = src_offset[idx]
-        dt=tgt_offset[0]
-        dj, di = indices[0]
-        ti = dt[di]
         tgt_offset = torch.cat([t.flatten(-2, -1)[i, :, j] for t, (j, i) in zip(tgt_offset, indices)], dim=0)
-
-        output['offset_loss'] = F.l1_loss(src_offset, tgt_offset, reduction='none')
-        offset_loss = output['offset_loss'] / self.opt.num_stacks
-
+        offset_loss = F.l1_loss(src_offset, tgt_offset, reduction='mean')
+        offset_loss = offset_loss / self.opt.num_stacks
         if self.opt.wh_weight > 0:
             wh_loss = self.crit_reg(output['wh'], batch['reg_mask'],
                                     batch['ind'],
@@ -367,6 +363,7 @@ class SetCriterion(nn.Module):
         1) we compute hungarian assignment between ground truth boxes and the outputs of the model
         2) we supervise each pair of matched ground-truth / prediction (supervise class and box)
     """
+
     def __init__(self, cfg, num_classes, matcher, weight_dict, losses):
         """ Create the criterion.
         Parameters:
