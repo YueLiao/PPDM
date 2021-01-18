@@ -10,7 +10,7 @@ import torch
 from progress.bar import Bar
 from models.data_parallel import DataParallel
 from utils.utils import AverageMeter
-from models.model import HoidetLoss, SetLoss
+from models.core import HoidetLoss, SetLoss
 
 
 class ModelWithLoss(torch.nn.Module):
