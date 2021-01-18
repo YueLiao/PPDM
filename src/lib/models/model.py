@@ -165,7 +165,7 @@ class MinCostMatcher(nn.Module):
         """
         super().__init__()
         self.cost_class = 1
-        self.cost_offset = 1
+        self.cost_offset = 0.2
         self.focal_loss_alpha = 0.25
         self.focal_loss_gamma = 2
         if self.cost_class == 0 and self.cost_offset == 0:

@@ -10,6 +10,7 @@ SRUN_ARGS=${SRUN_ARGS:-""}
 PY_ARGS=${PY_ARGS:-"--validate"}
 cd src
 srun -p ${PARTITION} \
+    -x SH-IDC1-10-5-38-[38-49,59-62] \
     --job-name=${JOB_NAME} \
     --gres=gpu:${GPUS_PER_NODE} \
     --ntasks=8 \
@@ -17,5 +18,5 @@ srun -p ${PARTITION} \
     --cpus-per-task=${CPUS_PER_TASK} \
     --kill-on-bad-exit=1 \
     ${SRUN_ARGS} \
-    python -u  train.py Hoidet --exp_id hoidet_hico_dla_140epoch_set_v2_fix_bug --batch_size 32  --lr 3e-4 --gpus 0,1,2,3,4,5,6,7 --num_workers 8 --val_intervals 100000 --image_dir images/train2015 --load_model ../models/ctdet_coco_dla_2x.pth --dataset hico --slurm --dist --apex --sync_bn --print_iter 100
+    python -u  train.py Hoidet --exp_id hoidet_hico_dla_140epoch_set_v2_fix_bug_T --batch_size 32  --lr 3e-4 --gpus 0,1,2,3,4,5,6,7 --num_workers 8 --val_intervals 100000 --image_dir images/train2015 --load_model ../models/ctdet_coco_dla_2x.pth --dataset hico --slurm --dist --apex --sync_bn --print_iter 100
 

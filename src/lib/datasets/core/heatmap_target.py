@@ -92,8 +92,8 @@ def get_set_hoi_target(hoi_list, bbox_list, output_w, output_h, max_rels, num_cl
     hoi_list = torch.tensor(hoi_list)[:num_rels, :]
     sub_obj_bbox_id, hm_rel[:num_rels] = hoi_list[:, :2], hoi_list[:, -1]
     bbox_list = torch.tensor(bbox_list).int()
-    matrix = torch.stack([torch.arange(0, output_w).repeat(output_h, 1).T,
-                          torch.arange(0, output_h).repeat(output_w, 1)], dim=0).repeat(max_rels, 2, 1, 1)
+    matrix = torch.stack([torch.arange(0, output_w).repeat(output_h, 1),
+                          torch.arange(0, output_h).repeat(output_w, 1).T], dim=0).repeat(max_rels, 2, 1, 1)
     sub_obj_ct = torch.zeros(max_rels, 4, 1, 1)
     sub_obj_ct[:num_rels, :] = bbox_list.index_select(0, sub_obj_bbox_id.flatten())[:, :2].reshape(-1, 4, 1, 1)
     offset = matrix - sub_obj_ct

@@ -16,7 +16,7 @@ from logger import Logger
 from datasets import get_dataset
 
 import torch.distributed as dist
-from torch.utils.data.distributed import DistributedSampler
+from utils.sampler import DistributedSampler
 
 
 def main(opt):
@@ -51,7 +51,9 @@ def main(opt):
         num_replicas = dist.get_world_size()
         opt.batch_size = opt.batch_size // num_replicas
         opt.num_workers = opt.num_workers // num_replicas
-        train_sampler = DistributedSampler(train_dataset)
+        train_sampler = DistributedSampler(train_dataset,
+                                           rank=opt.rank,
+                                           num_replicas=num_replicas)
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
             sampler=train_sampler,
