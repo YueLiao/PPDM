@@ -28,7 +28,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 2. Install pytorch0.4.1.
 
     ~~~
-    conda install pytorch=0.4.1 torchvision -c pytorch
+    conda install pytorch=0.4.1 cudatoolkit=9.0 torchvision -c pytorch
     ~~~
 3. Install the requirements.
     
