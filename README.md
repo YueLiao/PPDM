@@ -7,6 +7,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 ![](paper_images/framework.png)
 
 ## Checklist
+- [x] Pytorch>1.0 version with DDP and apex has benn released on pt1 branch. (2021-02-12)
 - [x] Training code and test code on HICO-Det dataset. (2020-03-11)
 - [x] Training code and test code on HOI-A dataset. (2020-03-11)
 - [ ] HOI-A dataset.
