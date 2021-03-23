@@ -10,7 +10,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 - [x] Pytorch>1.0 version with DDP and apex has benn released on [pt1 branch](https://github.com/YueLiao/PPDM/tree/pt1). (2021-02-12)
 - [x] Training code and test code on HICO-Det dataset. (2020-03-11)
 - [x] Training code and test code on HOI-A dataset. (2020-03-11)
-- [ ] HOI-A dataset.
+- [x] [HOI-A-2019 dataset](https://drive.google.com/drive/folders/15xrIt-biSmE9hEJ2W6lWlUmdDmhatjKt?usp=sharing).
 - [ ] Image demo.
 - [ ] Video demo.
 - [ ] PPDM for video HOI detection.
