@@ -15,7 +15,6 @@ import _ext as _backend
 
 class _DCNv2(Function):
     @staticmethod
-    @torch.cuda.amp.custom_fwd(cast_inputs=torch.float)
     def forward(ctx, input, offset, mask, weight, bias,
                 stride, padding, dilation, deformable_groups):
         ctx.stride = _pair(stride)
@@ -35,7 +34,6 @@ class _DCNv2(Function):
 
     @staticmethod
     @once_differentiable
-    @torch.cuda.amp.custom_bwd
     def backward(ctx, grad_output):
         input, offset, mask, weight, bias = ctx.saved_tensors
         grad_input, grad_offset, grad_mask, grad_weight, grad_bias = \
