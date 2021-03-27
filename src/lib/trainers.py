@@ -80,6 +80,8 @@ class Hoidet(object):
         else:
             from torch.nn.parallel import DistributedDataParallel as DDP
             self.model_with_loss = DDP(self.model_with_loss, device_ids=[local_rank], find_unused_parameters=True)
+            if self.opt.fp16:
+                self.scaler = torch.cuda.amp.GradScaler()
 
     def run_epoch(self, model_with_loss, epoch, data_loader, phase='train'):
         opt = self.opt
@@ -97,8 +99,14 @@ class Hoidet(object):
             for k in batch:
                 if k != 'meta':
                     batch[k] = batch[k].to(device=opt.device, non_blocking=True)
-            output, loss, loss_states = model_with_loss(batch)
-            loss = loss.mean()
+
+            if self.opt.fp16 and not self.opt.apex:
+                with torch.cuda.amp.autocast():
+                    output, loss, loss_states = model_with_loss(batch)
+                    loss = loss.mean()
+            else:
+                output, loss, loss_states = model_with_loss(batch)
+                loss = loss.mean()
             if phase == 'train':
                 self.optimizer.zero_grad()
 
@@ -106,10 +114,14 @@ class Hoidet(object):
                     from apex import amp
                     with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                         scaled_loss.backward()
+                    self.optimizer.step()
+                elif self.opt.fp16:
+                    self.scaler.scale(loss).backward()
+                    self.scaler.step(self.optimizer)
+                    self.scaler.update()
                 else:
                     loss.backward()
-
-                self.optimizer.step()
+                    self.optimizer.step()
 
             batch_time.update(time.time() - end)
             end = time.time()
