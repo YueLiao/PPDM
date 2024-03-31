@@ -50,7 +50,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
 
 ## Training and Test
 ### Dataset Preparation
-1. Download [HICO-Det](https://drive.google.com/open?id=1QZcJmGVlF9f4h-XLWe9Gkmnmj2z1gSnk) datasets. Organize them in `Dataset` folder as follows:
+1. Download [HICO-Det](https://drive.google.com/file/d/1dUByzVzM6z1Oq4gENa1-t0FLhr0UtDaS/view) datasets. Organize them in `Dataset` folder as follows:
 
     ~~~
     |-- Dataset/
