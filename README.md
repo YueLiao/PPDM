@@ -111,7 +111,7 @@ Contributed by [Yue Liao](yueliao.github.io), [Si Liu](http://colalab.org/people
     matlab -r "Generate_detection.m; quite"
     ~~~
 ## Results on HICO-DET and HOI-A
-We donot carefully tune the training hyper-parameters just following the setting in [Centernet](https://github.com/xingyizhou/CenterNet), e.g., lr, loss_weight, max_epoch, which may not be the best choice for our PPDM. It causes that the last checkpoint may not be the best one. We report two results and provide the corresponding two models for each setting, i.e. last checkpoint (the former, reported in paper) and best checkpoint.   
+We donot carefully tune the training hyper-parameters just following the setting in [Centernet](https://github.com/xingyizhou/CenterNet), e.g., lr, loss_weight, max_epoch, which may not be the best choice for our PPDM. It causes that the last checkpoint may not be the best one. We report two results and provide the corresponding two models for each setting, i.e. last checkpoint (the former, reported in the paper) and the best checkpoint.   
 
 **Our Results on HICO-DET dataset**
 
@@ -140,9 +140,18 @@ Please consider citing this project in your publications if it helps your resear
   pages={482--490},
   year={2020}
 }
+
+@ARTICLE{10496247,
+  author={Liao, Yue and Liu, Si and Gao, Yulu and Zhang, Aixi and Li, Zhimin and Wang, Fei and Li, Bo},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
+  title={PPDM++: Parallel Point Detection and Matching for Fast and Accurate HOI Detection}, 
+  year={2024},
+  pages={1-16},
+  doi={10.1109/TPAMI.2024.3386891}
+}
 ~~~
 ## License
 PPDM is released under the MIT license. See [LICENSE](LICENSE) for additional details.
 ## Acknowledge
-Some of the codes are built upon [Objects as Points](https://github.com/xingyizhou/CenterNet) and [iCAN](https://github.com/vt-vl-lab/iCAN). Thanks them for their great works!
+Some of the codes are built upon [Objects as Points](https://github.com/xingyizhou/CenterNet) and [iCAN](https://github.com/vt-vl-lab/iCAN). Thank them for their great work!
 
